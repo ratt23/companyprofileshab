@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Aileron", "Poppins", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Poppins", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Custom visual support styling */
+body {
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  background-color: #020617; /* rich dark slate matching main canvas outer background */
+}
+
+/* Custom scrollbars for modals */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Make esbuild bundle-friendly */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
+}
+
+@keyframes wave-move {
+  0% { transform: translateX(0) scaleY(1); }
+  50% { transform: translateX(-100px) scaleY(1.05); }
+  100% { transform: translateX(0) scaleY(1); }
+}
+@keyframes wave-move-reverse {
+  0% { transform: translateX(0) scaleY(1); }
+  50% { transform: translateX(100px) scaleY(1.05); }
+  100% { transform: translateX(0) scaleY(1); }
+}
+.animate-wave-1 {
+  animation: wave-move 20s ease-in-out infinite;
+}
+.animate-wave-2 {
+  animation: wave-move-reverse 25s ease-in-out infinite;
+}
+.animate-wave-3 {
+  animation: wave-move 30s ease-in-out infinite;
+}
