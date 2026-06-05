@@ -57,8 +57,8 @@ async function startServer() {
   app.post("/api/data", (req, res) => {
     try {
       const newData = req.body as DatabaseState;
-      if (!newData || !newData.doctors || !newData.stats || !newData.facilities) {
-        res.status(400).json({ error: "Invalid data format" });
+      if (!newData || !newData.doctors) {
+        res.status(400).json({ error: "Invalid data format: doctors array required" });
         return;
       }
       writeDatabase(newData);

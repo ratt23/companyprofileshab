@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { create } from "zustand";
-import { DatabaseState, Doctor, YearStats } from "../types";
+import { DatabaseState, Doctor, YearStats, SlideConfigItem } from "../types";
 import { defaultDatabaseState } from "../default_data_payload";
 
 interface SlideState {
@@ -10,6 +10,7 @@ interface SlideState {
   isFullscreen: boolean;
   loading: boolean;
   showRoster: boolean;
+  slideConfig: SlideConfigItem[];
   socialRealtimeData: {
     google: { rating: number; reviewsCount: string; status: string };
     instagram: Array<{ id: string; media_url: string; caption: string }>;
@@ -22,10 +23,12 @@ interface SlideState {
   setIsFullscreen: (isFullscreen: boolean) => void;
   setLoading: (loading: boolean) => void;
   setShowRoster: (showRoster: boolean | ((prev: boolean) => boolean)) => void;
+  setSlideConfig: (config: SlideConfigItem[]) => void;
 
   // Operations
   loadDatabase: () => Promise<void>;
   updateDatabase: (newDoctors: Doctor[], newStats: YearStats[]) => Promise<void>;
+  updateSlideConfig: (config: SlideConfigItem[]) => Promise<void>;
   fetchSocialStats: () => Promise<void>;
   nextSlide: (totalSlides: number) => void;
   prevSlide: (totalSlides: number) => void;
@@ -38,6 +41,7 @@ export const useSlideStore = create<SlideState>((set, get) => ({
   isFullscreen: false,
   loading: true,
   showRoster: false,
+  slideConfig: [],
   socialRealtimeData: null,
 
   setDbState: (dbState) => set({ dbState }),
@@ -52,12 +56,13 @@ export const useSlideStore = create<SlideState>((set, get) => ({
     set((state) => ({
       showRoster: typeof showRoster === "function" ? showRoster(state.showRoster) : showRoster,
     })),
+  setSlideConfig: (slideConfig) => set({ slideConfig }),
 
   loadDatabase: async () => {
     set({ loading: true });
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://dashdev2.netlify.app/.netlify/functions/api';
-      const response = await fetch(`${baseUrl}/company-profile/data`);
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${baseUrl}/api/data`);
       if (response.ok) {
         const data = await response.json();
         if (data && data.doctors) {
@@ -72,7 +77,10 @@ export const useSlideStore = create<SlideState>((set, get) => ({
               equipments: data.equipments || defaultDatabaseState.equipments,
               plan: data.plan || defaultDatabaseState.plan,
               socials: data.socials || defaultDatabaseState.socials,
+              slideConfig: data.slideConfig || undefined,
             },
+            // Also restore slideConfig into store state
+            slideConfig: data.slideConfig || [],
           });
         }
       }
@@ -84,16 +92,17 @@ export const useSlideStore = create<SlideState>((set, get) => ({
   },
 
   updateDatabase: async (newDoctors: Doctor[], newStats: YearStats[]) => {
-    const { dbState } = get();
+    const { dbState, slideConfig } = get();
     const updatedState: DatabaseState = {
       ...dbState,
       doctors: newDoctors,
       stats: newStats,
+      slideConfig: slideConfig.length > 0 ? slideConfig : dbState.slideConfig,
     };
 
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://dashdev2.netlify.app/.netlify/functions/api';
-      const response = await fetch(`${baseUrl}/company-profile/data`, {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${baseUrl}/api/data`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -109,6 +118,27 @@ export const useSlideStore = create<SlideState>((set, get) => ({
       set({ dbState: updatedState });
     } catch (err) {
       console.error("Error updating database:", err);
+      throw err;
+    }
+  },
+
+  updateSlideConfig: async (config: SlideConfigItem[]) => {
+    const { dbState } = get();
+    const updatedState: DatabaseState = {
+      ...dbState,
+      slideConfig: config,
+    };
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${baseUrl}/api/data`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedState),
+      });
+      if (!response.ok) throw new Error("Failed to update slide config");
+      set({ dbState: updatedState, slideConfig: config });
+    } catch (err) {
+      console.error("Error saving slide config:", err);
       throw err;
     }
   },

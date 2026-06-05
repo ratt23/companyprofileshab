@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Doctor, YearStats } from "../types";
+import { Doctor, YearStats, SlideConfigItem } from "../types";
 import {
   Trash2,
   PlusCircle,
@@ -10,21 +10,33 @@ import {
   X,
   FileText,
   Clock,
-  BriefcaseMedical
+  BriefcaseMedical,
+  Layers,
+  ChevronUp,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  GripVertical,
+  LayoutList
 } from "lucide-react";
 
 interface AdminPanelProps {
   doctors: Doctor[];
   stats: YearStats[];
+  slideConfig: SlideConfigItem[];
   onUpdateData: (newDoctors: Doctor[], newStats: YearStats[]) => Promise<void>;
+  onUpdateSlideConfig: (config: SlideConfigItem[]) => Promise<void>;
   onClose: () => void;
 }
 
-export function AdminPanel({ doctors, stats, onUpdateData, onClose }: AdminPanelProps) {
+export function AdminPanel({ doctors, stats, slideConfig, onUpdateData, onUpdateSlideConfig, onClose }: AdminPanelProps) {
   const [localDoctors, setLocalDoctors] = useState<Doctor[]>([...doctors]);
   const [localStats, setLocalStats] = useState<YearStats[]>([...stats]);
+  const [localSlideConfig, setLocalSlideConfig] = useState<SlideConfigItem[]>([...slideConfig]);
+  const [activeTab, setActiveTab] = useState<'doctors' | 'slides'>('doctors');
   const [searchQuery, setSearchQuery] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingSlides, setIsSavingSlides] = useState(false);
   const [notification, setNotification] = useState("");
 
   // Editing state for individual doctor
@@ -153,6 +165,38 @@ export function AdminPanel({ doctors, stats, onUpdateData, onClose }: AdminPanel
     }
   };
 
+  const handleSaveSlideConfig = async () => {
+    setIsSavingSlides(true);
+    try {
+      await onUpdateSlideConfig(localSlideConfig);
+      showNotice("Konfigurasi urutan slide berhasil disimpan!");
+      setTimeout(() => onClose(), 1500);
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menyimpan konfigurasi slide.");
+    } finally {
+      setIsSavingSlides(false);
+    }
+  };
+
+  // Slide config helpers
+  const moveSlide = (index: number, direction: 'up' | 'down') => {
+    const arr = [...localSlideConfig];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= arr.length) return;
+    [arr[index], arr[targetIndex]] = [arr[targetIndex], arr[index]];
+    setLocalSlideConfig(arr);
+  };
+
+  const toggleSlide = (id: string) => {
+    setLocalSlideConfig(prev => prev.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s));
+  };
+
+  const resetSlideOrder = () => {
+    setLocalSlideConfig(slideConfig);
+    showNotice("Urutan slide direset ke konfigurasi tersimpan.");
+  };
+
   const showNotice = (msg: string) => {
     setNotification(msg);
     setTimeout(() => {
@@ -176,7 +220,7 @@ export function AdminPanel({ doctors, stats, onUpdateData, onClose }: AdminPanel
             <Database className="w-8 h-8 text-amber-500" />
             <div>
               <h2 className="text-xl font-black">RSU Siloam Database Update Center</h2>
-              <p className="text-xs text-white/70">Manajemen Jadwal Dokter & Angka Kinerja Perusahaan Tanpa Ubah Kode</p>
+              <p className="text-xs text-white/70">Manajemen Jadwal Dokter, Angka Kinerja & Urutan Slide Presentasi</p>
             </div>
           </div>
           <button
@@ -187,6 +231,37 @@ export function AdminPanel({ doctors, stats, onUpdateData, onClose }: AdminPanel
           </button>
         </div>
 
+        {/* Tab Navigation */}
+        <div className="flex border-b border-slate-100 bg-slate-50 shrink-0">
+          <button
+            onClick={() => setActiveTab('doctors')}
+            className={`flex items-center space-x-2 px-6 py-3.5 text-xs font-bold transition-all border-b-2 ${
+              activeTab === 'doctors'
+                ? 'border-[#003399] text-[#003399] bg-white'
+                : 'border-transparent text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <BriefcaseMedical className="w-4 h-4" />
+            <span>JADWAL DOKTER & METRIK</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('slides')}
+            className={`flex items-center space-x-2 px-6 py-3.5 text-xs font-bold transition-all border-b-2 ${
+              activeTab === 'slides'
+                ? 'border-[#003399] text-[#003399] bg-white'
+                : 'border-transparent text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <LayoutList className="w-4 h-4" />
+            <span>URUTAN & VISIBILITAS SLIDE</span>
+            {localSlideConfig.filter(s => !s.enabled).length > 0 && (
+              <span className="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full ml-1">
+                {localSlideConfig.filter(s => !s.enabled).length} OFF
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* Floating Notification */}
         {notification && (
           <div className="bg-amber-500 text-white font-bold text-xs px-6 py-2 text-center shrink-0 shadow animate-pulse">
@@ -194,8 +269,10 @@ export function AdminPanel({ doctors, stats, onUpdateData, onClose }: AdminPanel
           </div>
         )}
 
-        {/* Content Body Split in Left & Right Panels */}
-        <div className="flex-1 flex overflow-hidden">
+        {/* === TAB: JADWAL DOKTER & METRIK === */}
+        {activeTab === 'doctors' && (
+          <>
+          <div className="flex-1 flex overflow-hidden">
           
           {/* Left Panel: Doctor Roster Management */}
           <div className="flex-1 p-6 flex flex-col overflow-hidden border-r border-slate-100">
@@ -509,7 +586,7 @@ export function AdminPanel({ doctors, stats, onUpdateData, onClose }: AdminPanel
           </div>
         </div>
 
-        {/* Action Bar */}
+        {/* Action Bar - Doctors Tab */}
         <div className="bg-slate-100 border-t border-slate-150 px-6 py-4 flex justify-between items-center shrink-0">
           <span className="text-[10px] text-slate-400 font-mono">
             * Perubahan akan langsung disimpan ke data/database.json lokal.
@@ -531,6 +608,155 @@ export function AdminPanel({ doctors, stats, onUpdateData, onClose }: AdminPanel
             </button>
           </div>
         </div>
+        </>
+        )}
+
+        {/* === TAB: URUTAN & VISIBILITAS SLIDE === */}
+        {activeTab === 'slides' && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex justify-between items-center mb-5">
+                <div>
+                  <h3 className="font-extrabold text-slate-800 text-sm tracking-wider uppercase flex items-center">
+                    <Layers className="w-4 h-4 mr-2 text-[#003399]" />
+                    KONFIGURASI URUTAN SLIDE ({localSlideConfig.length} slide)
+                  </h3>
+                  <p className="text-[10px] text-slate-400 mt-1 font-sans">
+                    Seret pakai tombol ↑↓ untuk mengatur urutan. Matikan tombol 👁 untuk menyembunyikan slide dari presentasi.
+                  </p>
+                </div>
+                <button
+                  onClick={resetSlideOrder}
+                  className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all border border-slate-200"
+                >
+                  <span>↺ Reset ke Default</span>
+                </button>
+              </div>
+
+              {/* Stats bar */}
+              <div className="grid grid-cols-3 gap-3 mb-5">
+                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
+                  <div className="text-lg font-black text-emerald-700">{localSlideConfig.filter(s => s.enabled).length}</div>
+                  <div className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Slide Aktif</div>
+                </div>
+                <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-center">
+                  <div className="text-lg font-black text-red-600">{localSlideConfig.filter(s => !s.enabled).length}</div>
+                  <div className="text-[10px] text-red-500 font-bold uppercase tracking-wider">Slide Disembunyikan</div>
+                </div>
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center">
+                  <div className="text-lg font-black text-[#003399]">{localSlideConfig.length}</div>
+                  <div className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Total Slide</div>
+                </div>
+              </div>
+
+              {/* Slide list reorderable */}
+              <div className="space-y-2">
+                {localSlideConfig.map((slide, index) => (
+                  <div
+                    key={slide.id}
+                    className={`flex items-center space-x-3 p-3.5 rounded-xl border transition-all ${
+                      slide.enabled
+                        ? 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
+                        : 'bg-slate-50 border-slate-100 opacity-60'
+                    }`}
+                  >
+                    {/* Position number */}
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black shrink-0 ${
+                      slide.enabled ? 'bg-[#003399] text-white' : 'bg-slate-200 text-slate-400'
+                    }`}>
+                      {index + 1}
+                    </div>
+
+                    {/* Drag handle icon */}
+                    <GripVertical className="w-4 h-4 text-slate-300 shrink-0" />
+
+                    {/* Slide label */}
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-xs font-bold truncate block ${
+                        slide.enabled ? 'text-slate-800' : 'text-slate-400 line-through'
+                      }`}>
+                        {slide.label}
+                      </span>
+                      {slide.isDynamic && (
+                        <span className="text-[9px] font-mono bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100 mt-0.5 inline-block">
+                          GRUP DINAMIS (berisi banyak slide dokter)
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Controls: toggle + move up/down */}
+                    <div className="flex items-center space-x-1 shrink-0">
+                      {/* Move up */}
+                      <button
+                        onClick={() => moveSlide(index, 'up')}
+                        disabled={index === 0}
+                        title="Pindah ke atas"
+                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-25 disabled:cursor-not-allowed transition-all text-slate-600"
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Move down */}
+                      <button
+                        onClick={() => moveSlide(index, 'down')}
+                        disabled={index === localSlideConfig.length - 1}
+                        title="Pindah ke bawah"
+                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-25 disabled:cursor-not-allowed transition-all text-slate-600"
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Toggle visibility */}
+                      <button
+                        onClick={() => toggleSlide(slide.id)}
+                        title={slide.enabled ? 'Sembunyikan slide ini' : 'Tampilkan slide ini'}
+                        className={`p-1.5 rounded-lg transition-all flex items-center space-x-1 px-2.5 text-[10px] font-bold ${
+                          slide.enabled
+                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                            : 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
+                        }`}
+                      >
+                        {slide.enabled ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                        <span>{slide.enabled ? 'ON' : 'OFF'}</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {localSlideConfig.length === 0 && (
+                  <div className="text-center py-12 text-slate-400">
+                    <Layers className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                    <p className="text-xs font-bold">Konfigurasi slide belum tersedia.</p>
+                    <p className="text-[10px] mt-1">Simpan dan reload untuk memuat konfigurasi default.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Slide Config Save Footer */}
+            <div className="bg-slate-100 border-t border-slate-150 px-6 py-4 flex justify-between items-center shrink-0">
+              <span className="text-[10px] text-slate-400 font-mono">
+                * Urutan & visibilitas akan langsung dipakai saat presentasi berikutnya.
+              </span>
+              <div className="flex space-x-2">
+                <button
+                  onClick={onClose}
+                  className="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleSaveSlideConfig}
+                  disabled={isSavingSlides}
+                  className="px-6 py-2.5 bg-[#003399] hover:bg-[#002080] disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 shadow"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{isSavingSlides ? "Menyimpan..." : "Simpan Konfigurasi Slide"}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

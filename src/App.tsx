@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Doctor, YearStats, HospitalFacility, DatabaseState } from "./types";
+import { Doctor, YearStats, HospitalFacility, DatabaseState, SlideConfigItem } from "./types";
 import { SlideCover } from "./components/SlideCover";
 import { SlideExcelence } from "./components/SlideExcelence";
 import { SlideStats } from "./components/SlideStats";
@@ -11,6 +11,7 @@ import { SlidePlan } from "./components/SlidePlan";
 import { SlideDoctors } from "./components/SlideDoctors";
 import { SlideSocialMedia } from "./components/SlideSocialMedia";
 import { RosterView } from "./components/RosterView";
+import { AdminPanel } from "./components/AdminPanel";
 import { useSlideStore } from "./store/useStore";
 import {
   ChevronLeft,
@@ -20,12 +21,9 @@ import {
   Maximize2,
   Minimize2,
   Database,
-  Search,
   Settings,
   Tv,
   Users,
-  Info,
-  CalendarDays,
   RefreshCw
 } from "lucide-react";
 
@@ -35,19 +33,25 @@ interface DynamicSlide {
 }
 
 const generateDynamicSlides = (doctors: Doctor[]): DynamicSlide[] => {
+  // Preserve the order of doctors as they come from the API (which respects doctorOrder).
+  // Group by specialty but maintain insertion order of first appearance of each specialty.
   const grouped: Record<string, Doctor[]> = {};
+  const specialtyOrder: string[] = [];
+
   doctors.forEach(d => {
     const spec = d.specialty || "Dokter Umum";
-    if (!grouped[spec]) grouped[spec] = [];
+    if (!grouped[spec]) {
+      grouped[spec] = [];
+      specialtyOrder.push(spec); // first appearance of this specialty
+    }
     grouped[spec].push(d);
   });
 
-  const sortedSpecs = Object.keys(grouped).sort();
   const slides: DynamicSlide[] = [];
 
-  sortedSpecs.forEach(spec => {
+  // Use specialtyOrder (insertion order = doctorOrder from API) instead of sort()
+  specialtyOrder.forEach(spec => {
     const list = grouped[spec];
-    // Maximum 3 doctors per slide for optimal viewing
     for (let i = 0; i < list.length; i += 3) {
       slides.push({
         title: spec.toUpperCase(),
@@ -59,6 +63,79 @@ const generateDynamicSlides = (doctors: Doctor[]): DynamicSlide[] => {
   return slides;
 };
 
+
+// The default/canonical ordered slide config items
+// This is used to generate the default slideConfig if none is stored
+const buildDefaultSlideConfig = (dynamicDoctorSlides: DynamicSlide[]): SlideConfigItem[] => [
+  { id: "cover", label: "Cover Slide – Sambutan RSU Siloam", enabled: true },
+  { id: "excellence", label: "Center of Excellence (Layanan Unggulan)", enabled: true },
+  { id: "stats", label: "Tren Statistik Kunjungan Pasien", enabled: true },
+  { id: "facilities-1", label: "Layanan: IGD 24 Jam & Siloam at Home", enabled: true },
+  { id: "facilities-2", label: "Layanan: Radiologi & Rawat Jalan", enabled: true },
+  { id: "facilities-3", label: "Layanan: Rawat Inap & Ambulans Rescue", enabled: true },
+  { id: "facilities-4", label: "Bangsal Terintegrasi: Kamar VVIP, VIP, Kelas I", enabled: true },
+  { id: "facilities-5", label: "Bangsal Terintegrasi: Kamar Kelas II & III", enabled: true },
+  { id: "clinic", label: "Executive Clinic: Lobby Premium & Lounge", enabled: true },
+  { id: "equipments-1", label: "Alat Tinggi: ESWL & PCNL Urologi", enabled: true },
+  { id: "equipments-2", label: "Alat Tinggi: C-Arm & CT Scan Diagnostik", enabled: true },
+  { id: "equipments-3", label: "Alat Tinggi: Bedah Phaco & Mikroskop Bedah", enabled: true },
+  { id: "plan", label: "Future Plan: Rencana Kerja Jangka Panjang", enabled: true },
+  {
+    id: "doctors",
+    label: `Dokter Spesialis (${dynamicDoctorSlides.length} halaman – dikelompokkan per spesialisasi)`,
+    enabled: true,
+    isDynamic: true
+  },
+  { id: "socials", label: "Connect: Media Sosial RSU Siloam Ambon", enabled: true },
+];
+
+// Map a slide config ID to the actual JSX component
+type RenderArgs = {
+  dynamicDoctorSlides: DynamicSlide[];
+  dbState: DatabaseState;
+  totalPages: number;
+};
+
+const renderSlideById = (
+  id: string,
+  args: RenderArgs
+): React.ReactNode | null => {
+  const { dynamicDoctorSlides, dbState, totalPages } = args;
+
+  if (id === "cover") return <SlideCover data={dbState.cover} />;
+  if (id === "excellence") return <SlideExcelence data={dbState.excellence} />;
+  if (id === "stats") return <SlideStats stats={dbState.stats} />;
+  if (id === "facilities-1") return <SlideFacilities page={1} facilities={dbState.facilities} />;
+  if (id === "facilities-2") return <SlideFacilities page={2} facilities={dbState.facilities} />;
+  if (id === "facilities-3") return <SlideFacilities page={3} facilities={dbState.facilities} />;
+  if (id === "facilities-4") return <SlideFacilities page={4} facilities={dbState.facilities} />;
+  if (id === "facilities-5") return <SlideFacilities page={5} facilities={dbState.facilities} />;
+  if (id === "clinic") return <SlideClinic data={dbState.clinic} />;
+  if (id === "equipments-1") return <SlideEquipments page={1} data={dbState.equipments} />;
+  if (id === "equipments-2") return <SlideEquipments page={2} data={dbState.equipments} />;
+  if (id === "equipments-3") return <SlideEquipments page={3} data={dbState.equipments} />;
+  if (id === "plan") return <SlidePlan data={dbState.plan} />;
+  if (id === "socials") return <SlideSocialMedia data={dbState.socials} />;
+
+  // Dynamic doctor slide IDs: "doctors-0", "doctors-1", etc.
+  if (id.startsWith("doctors-")) {
+    const pageIdx = parseInt(id.split("-")[1]);
+    const docSlide = dynamicDoctorSlides[pageIdx];
+    if (docSlide) {
+      return (
+        <SlideDoctors
+          title={docSlide.title}
+          doctors={docSlide.doctors}
+          pageNumber={pageIdx + 1}
+          totalPages={totalPages}
+        />
+      );
+    }
+  }
+
+  return null;
+};
+
 export default function App() {
   const {
     dbState,
@@ -67,15 +144,20 @@ export default function App() {
     isFullscreen,
     loading,
     showRoster,
+    slideConfig,
     setCurrentSlideIndex,
     setIsPlaying,
     setIsFullscreen,
     setShowRoster,
+    setSlideConfig,
     loadDatabase,
+    updateDatabase,
+    updateSlideConfig,
     nextSlide,
     prevSlide
   } = useSlideStore();
 
+  const [showAdmin, setShowAdmin] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -84,26 +166,60 @@ export default function App() {
     loadDatabase();
   }, [loadDatabase]);
 
-  const dynamicDoctorSlides = generateDynamicSlides(dbState.doctors);
-  const totalSlides = 13 + dynamicDoctorSlides.length + 1;
+  const dynamicDoctorSlides = useMemo(
+    () => generateDynamicSlides(dbState.doctors),
+    [dbState.doctors]
+  );
 
-  // Keyboard Navigation: support Space/Right/Down for Next, Left/Up for Prev
+  // Expand "doctors" group into individual doctor slide entries
+  const expandedSlideConfig = useMemo((): SlideConfigItem[] => {
+    const defaultConfig = buildDefaultSlideConfig(dynamicDoctorSlides);
+
+    // Use stored config if available; else use default
+    const storedConfig = slideConfig.length > 0 ? slideConfig : (dbState.slideConfig && dbState.slideConfig.length > 0 ? dbState.slideConfig : []);
+
+    // If no stored config, generate default and save to store
+    if (storedConfig.length === 0) {
+      setSlideConfig(defaultConfig);
+      // Expand doctors group into individual slides
+      return expandDoctorsGroup(defaultConfig, dynamicDoctorSlides);
+    }
+
+    return expandDoctorsGroup(storedConfig, dynamicDoctorSlides);
+  }, [slideConfig, dbState.slideConfig, dynamicDoctorSlides]);
+
+  // Compute slide config for AdminPanel (grouped, not expanded)
+  const adminSlideConfig = useMemo((): SlideConfigItem[] => {
+    if (slideConfig.length > 0) return slideConfig;
+    if (dbState.slideConfig && dbState.slideConfig.length > 0) return dbState.slideConfig;
+    return buildDefaultSlideConfig(dynamicDoctorSlides);
+  }, [slideConfig, dbState.slideConfig, dynamicDoctorSlides]);
+
+  // Only show enabled slides
+  const activeSlides = useMemo(
+    () => expandedSlideConfig.filter(s => s.enabled),
+    [expandedSlideConfig]
+  );
+
+  const totalSlides = activeSlides.length;
+
+  // Keyboard Navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Guard: do not capture triggers if modifying text fields in modals
       const target = e.target as HTMLElement;
       if (
         target.tagName === "INPUT" ||
         target.tagName === "SELECT" ||
         target.tagName === "TEXTAREA" ||
-        showRoster
+        showRoster ||
+        showAdmin
       ) {
         return;
       }
 
       if (e.key === "ArrowRight") {
         nextSlide(totalSlides);
-        setIsPlaying(false); // Auto-pause on manual intervention
+        setIsPlaying(false);
       } else if (e.key === "ArrowLeft") {
         prevSlide(totalSlides);
         setIsPlaying(false);
@@ -120,14 +236,14 @@ export default function App() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [currentSlideIndex, showRoster, totalSlides, nextSlide, prevSlide, setIsPlaying, setShowRoster]);
+  }, [currentSlideIndex, showRoster, showAdmin, totalSlides, nextSlide, prevSlide, setIsPlaying, setShowRoster]);
 
-  // Handle Autoplay Slideshow Player
+  // Autoplay
   useEffect(() => {
     if (isPlaying) {
       autoPlayTimerRef.current = setInterval(() => {
         nextSlide(totalSlides);
-      }, 8000); // 8 seconds per slide change
+      }, 8000);
     } else {
       if (autoPlayTimerRef.current) {
         clearInterval(autoPlayTimerRef.current);
@@ -156,7 +272,6 @@ export default function App() {
     }
   };
 
-  // Monitor browser exit-fullscreen triggers
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -167,72 +282,25 @@ export default function App() {
     };
   }, [setIsFullscreen]);
 
-  const baseSlides = [
-    { id: 0, label: "1. Cover Slide - Sambutan RSU Siloam" },
-    { id: 1, label: "2. Center of Excellence (Layanan Unggulan)" },
-    { id: 2, label: "3. Tren Statistik Kunjungan Pasien (Recharts)" },
-    { id: 3, label: "4. Layanan: IGD 24 Jam & Siloam at Home" },
-    { id: 4, label: "5. Layanan: Radiologi & Rawat Jalan" },
-    { id: 5, label: "6. Layanan: Rawat Inap & Ambulans Rescue" },
-    { id: 6, label: "7. Bangsal Terintegrasi: Kamar VVIP, VIP, Kelas I" },
-    { id: 7, label: "8. Bangsal Terintegrasi: Kamar Kelas II & Kelas III" },
-    { id: 8, label: "9. Executive Clinic: Lobby Premium & Lounge" },
-    { id: 9, label: "10. Alat Tinggi: ESWL & PCNL Urologi" },
-    { id: 10, label: "11. Alat Tinggi: C-Arm & CT Scan Diagnostik" },
-    { id: 11, label: "12. Alat Tinggi: Bedah Phaco & Mikroskop Bedah" },
-    { id: 12, label: "13. Future Plan: Rencana Kerja Jangka Panjang" }
-  ];
-
-  const slideCatalog = [
-    ...baseSlides,
-    ...dynamicDoctorSlides.map((slide, idx) => ({
-      id: 13 + idx,
-      label: `${14 + idx}. Dokter: ${slide.title}`
-    })),
-    { id: totalSlides - 1, label: `${totalSlides}. Connect: Media Sosial RSU Siloam Ambon` }
-  ];
-
-  // Helper to render the active slide component matching index
+  // Render current slide content based on activeSlides order
   const renderSlideContent = () => {
-    const idx = currentSlideIndex;
+    const currentSlide = activeSlides[currentSlideIndex];
+    if (!currentSlide) return <SlideCover data={dbState.cover} />;
 
-    if (idx === 0) return <SlideCover data={dbState.cover} />;
-    if (idx === 1) return <SlideExcelence data={dbState.excellence} />;
-    if (idx === 2) return <SlideStats stats={dbState.stats} />;
-    
-    // Facilities (pages 1 to 5) indices 3 to 7
-    if (idx >= 3 && idx <= 7) {
-      const pageIndex = (idx - 2) as 1 | 2 | 3 | 4 | 5;
-      return <SlideFacilities page={pageIndex} facilities={dbState.facilities} />;
-    }
-    
-    if (idx === 8) return <SlideClinic data={dbState.clinic} />;
+    const content = renderSlideById(currentSlide.id, {
+      dynamicDoctorSlides,
+      dbState,
+      totalPages: totalSlides,
+    });
 
-    // Machinery/Equipment indices 9 to 11
-    if (idx >= 9 && idx <= 11) {
-      const equipPage = (idx - 8) as 1 | 2 | 3;
-      return <SlideEquipments page={equipPage} data={dbState.equipments} />;
-    }
-
-    if (idx === 12) return <SlidePlan data={dbState.plan} />;
-
-    // Dynamic Doctor Specialties slides mapping internally 13 to 13+N
-    if (idx >= 13 && idx < 13 + dynamicDoctorSlides.length) {
-      const docSlide = dynamicDoctorSlides[idx - 13];
-      return (
-        <SlideDoctors 
-          title={docSlide.title} 
-          doctors={docSlide.doctors} 
-          pageNumber={idx + 1}
-          totalPages={totalSlides}
-        />
-      );
-    }
-
-    if (idx === totalSlides - 1) return <SlideSocialMedia data={dbState.socials} />;
-
-    return <SlideCover data={dbState.cover} />;
+    return content || <SlideCover data={dbState.cover} />;
   };
+
+  // Build the dropdown catalog from active slides
+  const slideCatalog = activeSlides.map((slide, idx) => ({
+    id: idx,
+    label: `${idx + 1}. ${slide.label}`
+  }));
 
   return (
     <div className="w-screen h-screen flex flex-col items-center justify-between bg-slate-950 font-sans text-white select-none relative overflow-hidden">
@@ -266,10 +334,18 @@ export default function App() {
             <span>Cari Roster Dokter ({dbState.doctors.length})</span>
           </button>
 
+          <button
+            onClick={() => setShowAdmin(true)}
+            className="px-3.5 py-1.5 bg-slate-800 hover:bg-amber-700 rounded-xl text-xs font-bold leading-none flex items-center space-x-1.5 transition-all text-slate-200 border border-slate-700/50 shadow"
+          >
+            <Settings className="w-3.5 h-3.5 text-amber-500" />
+            <span>Dashboard Admin</span>
+          </button>
+
         </div>
       </header>
 
-      {/* Main Slide Deck Canvas - Styled as dynamic PowerPoint widescreen screen */}
+      {/* Main Slide Deck Canvas */}
       <main className="flex-grow w-full flex items-center justify-center p-4">
         {loading ? (
           <div className="text-center space-y-3">
@@ -291,10 +367,7 @@ export default function App() {
                   target.tagName === "SELECT" ||
                   target.tagName === "TEXTAREA" ||
                   target.closest("button") ||
-                  target.closest("a") ||
-                  target.closest("[data-elfsight-app-lazy]") ||
-                  target.closest(".elfsight-app-3c8fe8ac-3573-41c7-8021-843c986bcdcc") ||
-                  target.closest(".elfsight-app-059beb55-6694-4f74-8a8d-57514994e975")
+                  target.closest("a")
                 ) {
                   return;
                 }
@@ -329,7 +402,7 @@ export default function App() {
               </svg>
             </div>
 
-            {/* Elegant slider screen with transition */}
+            {/* Animated slide transition */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentSlideIndex}
@@ -346,10 +419,10 @@ export default function App() {
         )}
       </main>
 
-      {/* Slider deck controls footer navigation bar */}
+      {/* Footer navigation */}
       <footer className="w-full bg-slate-900/60 backdrop-blur-md border-t border-slate-800/50 px-6 py-4 shrink-0 flex flex-col md:flex-row justify-between items-center z-30 space-y-3 md:space-y-0 text-xs">
         
-        {/* Custom Slide Catalog picker menu list */}
+        {/* Slide picker dropdown */}
         <div className="flex items-center space-x-2.5 w-full md:w-auto">
           <span className="text-slate-500 font-extrabold uppercase text-[10px] tracking-widest font-mono">Slide:</span>
           <select
@@ -358,7 +431,7 @@ export default function App() {
               setCurrentSlideIndex(parseInt(e.target.value));
               setIsPlaying(false);
             }}
-            className="bg-slate-800 border border-slate-700 text-xs font-bold rounded-xl px-3 py-1.5 text-slate-200 outline-none w-full md:w-64"
+            className="bg-slate-800 border border-slate-700 text-xs font-bold rounded-xl px-3 py-1.5 text-slate-200 outline-none w-full md:w-72"
           >
             {slideCatalog.map(slide => (
               <option key={slide.id} value={slide.id}>
@@ -368,7 +441,7 @@ export default function App() {
           </select>
         </div>
 
-        {/* Presenter controls panel */}
+        {/* Controls */}
         <div className="flex items-center space-x-4">
           <div className="flex bg-slate-800 rounded-xl p-1 border border-slate-700/50">
             <button
@@ -408,9 +481,14 @@ export default function App() {
           </button>
         </div>
 
-        {/* Dynamic slides paging statistics */}
+        {/* Paging info */}
         <div className="text-slate-500 font-mono font-bold text-[10px] tracking-wider">
           SLIDES DECK PAGING: <span className="text-slate-300">{currentSlideIndex + 1}</span> / {totalSlides}
+          {activeSlides.length < expandedSlideConfig.length && (
+            <span className="ml-2 text-amber-500">
+              ({expandedSlideConfig.length - activeSlides.length} disembunyikan)
+            </span>
+          )}
         </div>
 
       </footer>
@@ -423,6 +501,42 @@ export default function App() {
         />
       )}
 
+      {/* Admin Panel Overlay */}
+      {showAdmin && (
+        <AdminPanel
+          doctors={dbState.doctors}
+          stats={dbState.stats}
+          slideConfig={adminSlideConfig}
+          onUpdateData={updateDatabase}
+          onUpdateSlideConfig={updateSlideConfig}
+          onClose={() => setShowAdmin(false)}
+        />
+      )}
+
     </div>
   );
+}
+
+// Helper: expand "doctors" group into individual slide entries
+function expandDoctorsGroup(
+  config: SlideConfigItem[],
+  dynamicDoctorSlides: DynamicSlide[]
+): SlideConfigItem[] {
+  const result: SlideConfigItem[] = [];
+  for (const item of config) {
+    if (item.id === "doctors") {
+      // Expand into one entry per dynamic doctor slide
+      dynamicDoctorSlides.forEach((docSlide, idx) => {
+        result.push({
+          id: `doctors-${idx}`,
+          label: `Dokter: ${docSlide.title}`,
+          enabled: item.enabled,
+          isDynamic: true,
+        });
+      });
+    } else {
+      result.push(item);
+    }
+  }
+  return result;
 }

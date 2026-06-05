@@ -68,6 +68,13 @@ export interface SocialsSlide {
   website: string;
 }
 
+export interface SlideConfigItem {
+  id: string;        // unique identifier (e.g. "cover", "excellence", "doctor-OTOLARYNGOLOGIST")
+  label: string;     // display label
+  enabled: boolean;  // visible in slideshow?
+  isDynamic?: boolean; // true for doctor-specialty slides (cannot be individually reordered, managed as a group)
+}
+
 export interface DatabaseState {
   doctors: Doctor[];
   stats: YearStats[];
@@ -78,4 +85,5 @@ export interface DatabaseState {
   equipments?: EquipmentItem[];
   plan?: PlanSlide;
   socials?: SocialsSlide;
+  slideConfig?: SlideConfigItem[];
 }
