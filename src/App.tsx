@@ -334,13 +334,7 @@ export default function App() {
             <span>Cari Roster Dokter ({dbState.doctors.length})</span>
           </button>
 
-          <button
-            onClick={() => setShowAdmin(true)}
-            className="px-3.5 py-1.5 bg-slate-800 hover:bg-amber-700 rounded-xl text-xs font-bold leading-none flex items-center space-x-1.5 transition-all text-slate-200 border border-slate-700/50 shadow"
-          >
-            <Settings className="w-3.5 h-3.5 text-amber-500" />
-            <span>Dashboard Admin</span>
-          </button>
+
 
         </div>
       </header>
@@ -501,17 +495,7 @@ export default function App() {
         />
       )}
 
-      {/* Admin Panel Overlay */}
-      {showAdmin && (
-        <AdminPanel
-          doctors={dbState.doctors}
-          stats={dbState.stats}
-          slideConfig={adminSlideConfig}
-          onUpdateData={updateDatabase}
-          onUpdateSlideConfig={updateSlideConfig}
-          onClose={() => setShowAdmin(false)}
-        />
-      )}
+
 
     </div>
   );
