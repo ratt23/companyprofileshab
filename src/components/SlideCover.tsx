@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { CoverSlide } from "../types";
 
-export function SlideCover({ data }: { data?: CoverSlide }) {
+export function SlideCover({ data, pageNumber, totalPages }: { data?: CoverSlide; pageNumber?: number; totalPages?: number }) {
   // Use fallback if data is somehow missing
   const safeData = data || {
     title: "RSU Siloam Ambon",
@@ -48,7 +48,7 @@ export function SlideCover({ data }: { data?: CoverSlide }) {
         #BersamaSiloam
       </div>
       <div className="absolute bottom-8 right-12 text-slate-400 text-xs font-mono z-10">
-        Ambon Medical Presentation • Press Space / Arrows
+        Page {pageNumber || 1} / {totalPages || 45}
       </div>
     </div>
   );

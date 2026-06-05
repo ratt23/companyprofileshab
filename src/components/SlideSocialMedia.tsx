@@ -4,7 +4,7 @@ import { Instagram, MapPin, Phone, Globe, Star, Users, Compass, Facebook } from 
 import { SocialsSlide } from "../types";
 import { useSlideStore } from "../store/useStore";
 
-export function SlideSocialMedia({ data }: { data?: SocialsSlide }) {
+export function SlideSocialMedia({ data, pageNumber, totalPages }: { data?: SocialsSlide; pageNumber?: number; totalPages?: number }) {
   const { socialRealtimeData, fetchSocialStats } = useSlideStore();
 
   useEffect(() => {
@@ -15,7 +15,9 @@ export function SlideSocialMedia({ data }: { data?: SocialsSlide }) {
     phone: "1-500-181",
     instagram: "siloamhospitals",
     facebook: "Siloam Hospitals",
-    website: "siloamhospitals.com"
+    website: "siloamhospitals.com",
+    igWidget: '<div class="elfsight-app-3c8fe8ac-3573-41c7-8021-843c986bcdcc" data-elfsight-app-lazy></div>',
+    googleWidget: '<div class="elfsight-app-059beb55-6694-4f74-8a8d-57514994e975" data-elfsight-app-lazy></div>'
   };
 
   const gData = socialRealtimeData?.google || {
@@ -54,7 +56,11 @@ export function SlideSocialMedia({ data }: { data?: SocialsSlide }) {
           className="w-full relative flex flex-col justify-center min-h-[400px]"
         >
           {/* Elfsight Instagram Feed */}
-          <div className="elfsight-app-3c8fe8ac-3573-41c7-8021-843c986bcdcc" data-elfsight-app-lazy></div>
+          {safeData.igWidget ? (
+            <div dangerouslySetInnerHTML={{ __html: safeData.igWidget }} />
+          ) : (
+            <div className="elfsight-app-3c8fe8ac-3573-41c7-8021-843c986bcdcc" data-elfsight-app-lazy></div>
+          )}
         </motion.div>
 
         <motion.div
@@ -64,7 +70,11 @@ export function SlideSocialMedia({ data }: { data?: SocialsSlide }) {
           className="w-full relative flex flex-col justify-center min-h-[400px]"
         >
           {/* Elfsight Google Reviews */}
-          <div className="elfsight-app-059beb55-6694-4f74-8a8d-57514994e975" data-elfsight-app-lazy></div>
+          {safeData.googleWidget ? (
+            <div dangerouslySetInnerHTML={{ __html: safeData.googleWidget }} />
+          ) : (
+            <div className="elfsight-app-059beb55-6694-4f74-8a8d-57514994e975" data-elfsight-app-lazy></div>
+          )}
         </motion.div>
 
       </div>
@@ -72,7 +82,7 @@ export function SlideSocialMedia({ data }: { data?: SocialsSlide }) {
       {/* Footer */}
       <div className="flex justify-between items-center text-slate-400 text-xs">
         <span>#BersamaSiloam</span>
-        <span className="font-mono">Page 45 / 45</span>
+        <span className="font-mono">Page {pageNumber || 45} / {totalPages || 45}</span>
       </div>
     </div>
   );

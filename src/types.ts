@@ -59,6 +59,12 @@ export interface PlanSlide {
   title: string;
   description: string;
   image: string;
+  timeline?: {
+    year: string;
+    title: string;
+    points: string | string[];
+    position: "top" | "bottom";
+  }[];
 }
 
 export interface SocialsSlide {
@@ -66,6 +72,8 @@ export interface SocialsSlide {
   instagram: string;
   facebook: string;
   website: string;
+  igWidget?: string;
+  googleWidget?: string;
 }
 
 export interface SlideConfigItem {
@@ -74,10 +82,14 @@ export interface SlideConfigItem {
   enabled: boolean;  // visible in slideshow?
   isDynamic?: boolean; // true for doctor-specialty slides (cannot be individually reordered, managed as a group)
 }
-
 export interface DatabaseState {
   doctors: Doctor[];
   stats: YearStats[];
+  statsMeta?: {
+    subtitle: string;
+    title: string;
+    description: string;
+  };
   facilities: HospitalFacility[];
   cover?: CoverSlide;
   excellence?: ExcellenceItem[];

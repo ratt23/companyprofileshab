@@ -6,9 +6,11 @@ import { HospitalFacility } from "../types";
 interface SlideFacilitiesProps {
   page: 1 | 2 | 3 | 4 | 5; // Corresponding to Pages 4, 5, 6, 7, 8
   facilities: HospitalFacility[];
+  pageNumber?: number;
+  totalPages?: number;
 }
 
-export function SlideFacilities({ page, facilities }: SlideFacilitiesProps) {
+export function SlideFacilities({ page, facilities, pageNumber, totalPages }: SlideFacilitiesProps) {
   // Use index-based slicing instead of hardcoded IDs
   // so any facilities added from the dashboard will always display
   const getPageData = () => {
@@ -235,7 +237,7 @@ export function SlideFacilities({ page, facilities }: SlideFacilitiesProps) {
       {/* Footer */}
       <div className="flex justify-between items-center text-slate-400 text-xs">
         <span>#BersamaSiloam</span>
-        <span className="font-mono">Page {3 + page} / 45</span>
+        <span className="font-mono">Page {pageNumber || (3 + page)} / {totalPages || 45}</span>
       </div>
     </div>
   );

@@ -15,9 +15,16 @@ import { TrendingUp, Users, ShieldPlus, UserCheck, Calendar } from "lucide-react
 
 interface SlideStatsProps {
   stats: YearStats[];
+  statsMeta?: {
+    subtitle: string;
+    title: string;
+    description: string;
+  };
+  pageNumber?: number;
+  totalPages?: number;
 }
 
-export function SlideStats({ stats }: SlideStatsProps) {
+export function SlideStats({ stats, statsMeta, pageNumber, totalPages }: SlideStatsProps) {
   const [selectedYearIndex, setSelectedYearIndex] = useState(2); // Default to 2025 (latest)
 
   const activeStats = stats[selectedYearIndex] || stats[stats.length - 1];
@@ -71,13 +78,13 @@ export function SlideStats({ stats }: SlideStatsProps) {
           <div>
             <h3 className="text-md uppercase font-extrabold text-[#b0841a] tracking-wider flex items-center">
               <TrendingUp className="w-5 h-5 mr-1.5" />
-              TREN DAN STATISTIK KINERJA
+              {statsMeta?.subtitle || "TREN DAN STATISTIK KINERJA"}
             </h3>
             <h2 className="text-4xl font-extrabold text-[#003399] tracking-tight text-sans leading-tight">
-              Kunjungan Pasien {activeStats?.year}
+              {(statsMeta?.title || "Kunjungan Pasien {year}").replace("{year}", activeStats?.year || "")}
             </h2>
             <p className="text-xs text-slate-400">
-              YTD Jan to Dec {activeStats?.year} di Siloam Ambon. Terintegrasi langsung dengan database hospital.
+              {(statsMeta?.description || "YTD Jan to Dec {year} di Siloam Ambon. Terintegrasi langsung dengan database hospital.").replace("{year}", activeStats?.year || "")}
             </p>
           </div>
 
@@ -199,7 +206,7 @@ export function SlideStats({ stats }: SlideStatsProps) {
       {/* Footer */}
       <div className="flex justify-between items-center text-slate-400 text-xs z-10">
         <span>#BersamaSiloam</span>
-        <span className="font-mono">Page 3 / 45</span>
+        <span className="font-mono">Page {pageNumber || 3} / {totalPages || 45}</span>
       </div>
     </div>
   );

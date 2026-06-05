@@ -66,10 +66,20 @@ export const useSlideStore = create<SlideState>((set, get) => ({
       if (response.ok) {
         const data = await response.json();
         if (data && data.doctors) {
+          // Filter out disabled doctors client-side using doctorOrder
+          let activeDoctors = data.doctors;
+          if (data.doctorOrder && data.doctorOrder.length > 0) {
+            const disabledIds = new Set(
+              data.doctorOrder.filter((item: any) => item.enabled === false).map((item: any) => item.id)
+            );
+            activeDoctors = data.doctors.filter((d: any) => !disabledIds.has(d.id));
+          }
+
           set({
             dbState: {
-              doctors: data.doctors && data.doctors.length > 0 ? data.doctors : defaultDatabaseState.doctors,
+              doctors: activeDoctors && activeDoctors.length > 0 ? activeDoctors : defaultDatabaseState.doctors,
               stats: data.stats && data.stats.length > 0 ? data.stats : defaultDatabaseState.stats,
+              statsMeta: data.statsMeta || defaultDatabaseState.statsMeta,
               facilities: data.facilities && data.facilities.length > 0 ? data.facilities : defaultDatabaseState.facilities,
               cover: data.cover || defaultDatabaseState.cover,
               excellence: data.excellence || defaultDatabaseState.excellence,

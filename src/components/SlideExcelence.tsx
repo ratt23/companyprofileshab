@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { Baby, Activity, ShieldAlert, ChevronRight, Star } from "lucide-react";
 import { ExcellenceItem } from "../types";
 
-export function SlideExcelence({ data }: { data?: ExcellenceItem[] }) {
+export function SlideExcelence({ data, pageNumber, totalPages }: { data?: ExcellenceItem[]; pageNumber?: number; totalPages?: number }) {
   const safeData = data || [];
   
   // Fallback to hardcoded if no dynamic data available yet
@@ -108,7 +108,7 @@ export function SlideExcelence({ data }: { data?: ExcellenceItem[] }) {
 
       <div className="flex justify-between items-center text-slate-400 text-xs">
         <span>#BersamaSiloam</span>
-        <span className="font-mono">Page 2 / 45</span>
+        <span className="font-mono">Page {pageNumber || 2} / {totalPages || 45}</span>
       </div>
     </div>
   );

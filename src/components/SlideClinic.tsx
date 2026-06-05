@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { Star, ChevronRight, CheckCircle2, ShieldCheck, Clock } from "lucide-react";
 import { ClinicSlide } from "../types";
 
-export function SlideClinic({ data }: { data?: ClinicSlide }) {
+export function SlideClinic({ data, pageNumber, totalPages }: { data?: ClinicSlide; pageNumber?: number; totalPages?: number }) {
   const safeData = data || {
     title: "EXECUTIVE CLINIC",
     description: "Premium integrated clinic designed exclusively for executive comfort with luxury waiting rooms and one stop service.",
@@ -124,7 +124,7 @@ export function SlideClinic({ data }: { data?: ClinicSlide }) {
       {/* Footer */}
       <div className="flex justify-between items-center text-slate-400 text-xs">
         <span>#BersamaSiloam</span>
-        <span className="font-mono">Page 9 / 45</span>
+        <span className="font-mono">Page {pageNumber || 9} / {totalPages || 45}</span>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { Doctor } from "../types";
 import { Stethoscope } from "lucide-react";
+import { getProxiedImageUrl } from "../utils/imageUtils";
 
 interface DoctorPortraitProps {
   doc: Doctor;
@@ -10,7 +11,7 @@ interface DoctorPortraitProps {
 
 function DoctorPortrait({ doc, getInitials }: DoctorPortraitProps) {
   const [hasError, setHasError] = React.useState(false);
-  const imageUrl = doc.image_url || doc.avatarUrl;
+  const imageUrl = getProxiedImageUrl(doc.image_url || doc.avatarUrl);
 
   return (
     <div className="w-full aspect-[3/4] relative mb-4">

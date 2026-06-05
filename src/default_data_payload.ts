@@ -537,6 +537,11 @@ export const defaultDatabaseState: DatabaseState = {
       mcu: 3375
     }
   ],
+  statsMeta: {
+    subtitle: "TREN DAN STATISTIK KINERJA",
+    title: "Kunjungan Pasien",
+    description: "YTD Jan to Dec {year} di Siloam Ambon. Terintegrasi langsung dengan database hospital."
+  },
   facilities: [
     {
       id: "facility-emergency",
@@ -639,12 +644,40 @@ export const defaultDatabaseState: DatabaseState = {
   plan: {
     title: "HOSPITAL MASTER PLAN",
     description: "Our vision for the future expansion of RSU Siloam Ambon.",
-    image: ""
+    image: "",
+    timeline: [
+      {
+        year: "2025",
+        title: "2025 at Siloam Ambon",
+        points: "Kamar Rawat Inap :\nmenjadi total 145 Bed\nExecutive Clinic\nICU + NICU",
+        position: "top"
+      },
+      {
+        year: "2026",
+        title: "2026 at Siloam Ambon",
+        points: "Penambahan IPD\nlt. 9 75 Bed\nLaparoscopy",
+        position: "bottom"
+      },
+      {
+        year: "2027",
+        title: "2027 at Siloam Ambon",
+        points: "Cath Lab\nPenambahan Bed IPD\nlt. 8 100 Bed\nKemoterapi",
+        position: "top"
+      },
+      {
+        year: "2028",
+        title: "2028 at Siloam Ambon",
+        points: "MRI",
+        position: "bottom"
+      }
+    ]
   },
   socials: {
     phone: "1-500-181",
     instagram: "siloamhospitals",
     facebook: "Siloam Hospitals",
-    website: "siloamhospitals.com"
+    website: "siloamhospitals.com",
+    igWidget: '<div class="elfsight-app-3c8fe8ac-3573-41c7-8021-843c986bcdcc" data-elfsight-app-lazy></div>',
+    googleWidget: '<div class="elfsight-app-059beb55-6694-4f74-8a8d-57514994e975" data-elfsight-app-lazy></div>'
   }
 };

@@ -6,9 +6,11 @@ import { EquipmentItem } from "../types";
 interface SlideEquipmentsProps {
   page: 1 | 2 | 3; // pagination
   data?: EquipmentItem[];
+  pageNumber?: number;
+  totalPages?: number;
 }
 
-export function SlideEquipments({ page, data }: SlideEquipmentsProps) {
+export function SlideEquipments({ page, data, pageNumber, totalPages }: SlideEquipmentsProps) {
   const safeData = data || [];
   
   // Calculate items for current page (2 per page)
@@ -109,7 +111,7 @@ export function SlideEquipments({ page, data }: SlideEquipmentsProps) {
       {/* Footer */}
       <div className="flex justify-between items-center text-slate-400 text-xs">
         <span>#BersamaSiloam</span>
-        <span className="font-mono">Page {9 + page} / 45</span>
+        <span className="font-mono">Page {pageNumber || (9 + page)} / {totalPages || 45}</span>
       </div>
     </div>
   );

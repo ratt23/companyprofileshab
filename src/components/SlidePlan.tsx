@@ -30,18 +30,33 @@ const timelineData = [
   },
 ];
 
-export function SlidePlan({ data }: { data?: PlanSlide }) {
+export function SlidePlan({ data, pageNumber, totalPages }: { data?: PlanSlide; pageNumber?: number; totalPages?: number }) {
   const safeData = data || {
     title: "HOSPITAL MASTER PLAN",
     description: "Our vision for the future expansion of RSU Siloam Ambon.",
     image: ""
   };
 
+  const rawTimeline = safeData.timeline && safeData.timeline.length > 0 ? safeData.timeline : timelineData;
+
+  const resolvedTimeline = rawTimeline.map(node => {
+    let pts: string[] = [];
+    if (Array.isArray(node.points)) {
+      pts = node.points;
+    } else if (typeof node.points === 'string') {
+      pts = node.points.split('\n').filter(p => p.trim() !== '');
+    }
+    return {
+      ...node,
+      points: pts
+    };
+  });
+
   return (
-    <div className="relative w-full h-full bg-transparent text-[#002f87] p-8 flex flex-col overflow-hidden">
+    <div className="relative w-full h-full bg-transparent text-[#002f87] p-8 flex flex-col justify-between overflow-hidden">
       
       {/* Header */}
-      <div className="flex justify-between items-center z-10">
+      <div className="flex justify-between items-center z-10 flex-shrink-0">
         <div className="flex items-center space-x-3">
           <img src="/logo.png" alt="Siloam Hospitals" className="h-6 w-auto object-contain" />
           <span className="text-xs text-slate-400 font-mono font-semibold border-l border-slate-200 pl-3">
@@ -64,20 +79,20 @@ export function SlidePlan({ data }: { data?: PlanSlide }) {
       </div>
 
       {/* Interactive Timeline */}
-      <div className="flex-1 w-full relative z-10 flex items-center justify-center mt-8">
+      <div className="flex-1 w-full relative z-10 flex items-center justify-center my-auto">
         <div className="relative w-full max-w-4xl h-[400px]">
           
           {/* Dashed Line Background */}
           <div className="absolute top-1/2 left-0 w-full h-[2px] border-t-2 border-dashed border-[#002f87]/50 -translate-y-1/2" />
 
           {/* Timeline Nodes */}
-          {timelineData.map((item, index) => {
-            const leftPercent = (index / (timelineData.length - 1)) * 100;
+          {resolvedTimeline.map((item, index) => {
+            const leftPercent = (index / (resolvedTimeline.length - 1)) * 100;
             const isTop = item.position === "top";
 
             return (
               <motion.div
-                key={item.year}
+                key={index}
                 initial={{ opacity: 0, y: isTop ? -30 : 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.3, duration: 0.6, type: "spring", bounce: 0.4 }}
@@ -103,7 +118,7 @@ export function SlidePlan({ data }: { data?: PlanSlide }) {
                   {isTop && (
                     <div className="flex flex-col items-start relative">
                       <div className="inline-block bg-[#002f87] text-white text-xs font-bold px-3 py-1 rounded-full mb-3 shadow-md">
-                        {item.title}
+                        {item.title || `${item.year} at Siloam Ambon`}
                       </div>
                       <ul className="text-sm font-medium leading-tight text-[#002f87] space-y-1.5 pl-1">
                         {item.points.map((pt, i) => (
@@ -113,15 +128,13 @@ export function SlidePlan({ data }: { data?: PlanSlide }) {
                           </li>
                         ))}
                       </ul>
-                      {/* Optional connecting vertical dotted line to dot (if you want one) */}
-                      {/* <div className="absolute left-3 -bottom-4 w-[2px] h-4 border-l-2 border-dotted border-[#002f87]/30" /> */}
                     </div>
                   )}
 
                   {!isTop && (
                     <div className="flex flex-col items-start relative">
                       <div className="inline-block bg-[#002f87] text-white text-xs font-bold px-3 py-1 rounded-full mb-3 shadow-md">
-                        {item.title}
+                        {item.title || `${item.year} at Siloam Ambon`}
                       </div>
                       <ul className="text-sm font-medium leading-tight text-[#002f87] space-y-1.5 pl-1">
                         {item.points.map((pt, i) => (
@@ -140,6 +153,11 @@ export function SlidePlan({ data }: { data?: PlanSlide }) {
         </div>
       </div>
 
+      {/* Footer */}
+      <div className="flex justify-between items-center text-slate-400 text-xs z-10 flex-shrink-0">
+        <span>#BersamaSiloam</span>
+        <span className="font-mono">Page {pageNumber || 13} / {totalPages || 45}</span>
+      </div>
     </div>
   );
 }

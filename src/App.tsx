@@ -94,28 +94,29 @@ type RenderArgs = {
   dynamicDoctorSlides: DynamicSlide[];
   dbState: DatabaseState;
   totalPages: number;
+  pageNumber: number;
 };
 
 const renderSlideById = (
   id: string,
   args: RenderArgs
 ): React.ReactNode | null => {
-  const { dynamicDoctorSlides, dbState, totalPages } = args;
+  const { dynamicDoctorSlides, dbState, totalPages, pageNumber } = args;
 
-  if (id === "cover") return <SlideCover data={dbState.cover} />;
-  if (id === "excellence") return <SlideExcelence data={dbState.excellence} />;
-  if (id === "stats") return <SlideStats stats={dbState.stats} />;
-  if (id === "facilities-1") return <SlideFacilities page={1} facilities={dbState.facilities} />;
-  if (id === "facilities-2") return <SlideFacilities page={2} facilities={dbState.facilities} />;
-  if (id === "facilities-3") return <SlideFacilities page={3} facilities={dbState.facilities} />;
-  if (id === "facilities-4") return <SlideFacilities page={4} facilities={dbState.facilities} />;
-  if (id === "facilities-5") return <SlideFacilities page={5} facilities={dbState.facilities} />;
-  if (id === "clinic") return <SlideClinic data={dbState.clinic} />;
-  if (id === "equipments-1") return <SlideEquipments page={1} data={dbState.equipments} />;
-  if (id === "equipments-2") return <SlideEquipments page={2} data={dbState.equipments} />;
-  if (id === "equipments-3") return <SlideEquipments page={3} data={dbState.equipments} />;
-  if (id === "plan") return <SlidePlan data={dbState.plan} />;
-  if (id === "socials") return <SlideSocialMedia data={dbState.socials} />;
+  if (id === "cover") return <SlideCover data={dbState.cover} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "excellence") return <SlideExcelence data={dbState.excellence} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "stats") return <SlideStats stats={dbState.stats} statsMeta={dbState.statsMeta} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "facilities-1") return <SlideFacilities page={1} facilities={dbState.facilities} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "facilities-2") return <SlideFacilities page={2} facilities={dbState.facilities} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "facilities-3") return <SlideFacilities page={3} facilities={dbState.facilities} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "facilities-4") return <SlideFacilities page={4} facilities={dbState.facilities} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "facilities-5") return <SlideFacilities page={5} facilities={dbState.facilities} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "clinic") return <SlideClinic data={dbState.clinic} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "equipments-1") return <SlideEquipments page={1} data={dbState.equipments} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "equipments-2") return <SlideEquipments page={2} data={dbState.equipments} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "equipments-3") return <SlideEquipments page={3} data={dbState.equipments} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "plan") return <SlidePlan data={dbState.plan} pageNumber={pageNumber} totalPages={totalPages} />;
+  if (id === "socials") return <SlideSocialMedia data={dbState.socials} pageNumber={pageNumber} totalPages={totalPages} />;
 
   // Dynamic doctor slide IDs: "doctors-0", "doctors-1", etc.
   if (id.startsWith("doctors-")) {
@@ -126,7 +127,7 @@ const renderSlideById = (
         <SlideDoctors
           title={docSlide.title}
           doctors={docSlide.doctors}
-          pageNumber={pageIdx + 1}
+          pageNumber={pageNumber}
           totalPages={totalPages}
         />
       );
@@ -285,12 +286,13 @@ export default function App() {
   // Render current slide content based on activeSlides order
   const renderSlideContent = () => {
     const currentSlide = activeSlides[currentSlideIndex];
-    if (!currentSlide) return <SlideCover data={dbState.cover} />;
+    if (!currentSlide) return <SlideCover data={dbState.cover} pageNumber={1} totalPages={totalSlides} />;
 
     const content = renderSlideById(currentSlide.id, {
       dynamicDoctorSlides,
       dbState,
       totalPages: totalSlides,
+      pageNumber: currentSlideIndex + 1,
     });
 
     return content || <SlideCover data={dbState.cover} />;
