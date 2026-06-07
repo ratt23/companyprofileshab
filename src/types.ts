@@ -47,6 +47,9 @@ export interface ClinicSlide {
   description: string;
   schedule: string;
   amenities: string[];
+  image1?: string;
+  image2?: string;
+  image3?: string;
 }
 
 export interface EquipmentItem {
@@ -82,6 +85,13 @@ export interface SlideConfigItem {
   enabled: boolean;  // visible in slideshow?
   isDynamic?: boolean; // true for doctor-specialty slides (cannot be individually reordered, managed as a group)
 }
+export interface PartnerSlide {
+  id: string;
+  title: string;
+  subtitle?: string;
+  logos: string[];
+}
+
 export interface DatabaseState {
   doctors: Doctor[];
   stats: YearStats[];
@@ -98,4 +108,6 @@ export interface DatabaseState {
   plan?: PlanSlide;
   socials?: SocialsSlide;
   slideConfig?: SlideConfigItem[];
+  partners?: PartnerSlide[];
 }
+

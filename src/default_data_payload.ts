@@ -635,7 +635,10 @@ export const defaultDatabaseState: DatabaseState = {
     title: "EXECUTIVE CLINIC",
     description: "Premium integrated clinic designed exclusively for executive comfort with luxury waiting rooms and one stop service.",
     schedule: "Senin - Sabtu, 08:00 - 20:00",
-    amenities: ["One Stop Specialist Services", "Executive Lounge", "Personal Assistant"]
+    amenities: ["One Stop Specialist Services", "Executive Lounge", "Personal Assistant"],
+    image1: "/clinic_bg.png",
+    image2: "/clinic_inset1.png",
+    image3: "/clinic_inset2.png"
   },
   equipments: [
     { name: "CT SCAN MULTI-SLICE", description: "Advanced diagnostic imaging.", image: "" },
@@ -679,5 +682,13 @@ export const defaultDatabaseState: DatabaseState = {
     website: "siloamhospitals.com",
     igWidget: '<div class="elfsight-app-3c8fe8ac-3573-41c7-8021-843c986bcdcc" data-elfsight-app-lazy></div>',
     googleWidget: '<div class="elfsight-app-059beb55-6694-4f74-8a8d-57514994e975" data-elfsight-app-lazy></div>'
-  }
+  },
+  partners: [
+    {
+      id: "default",
+      title: "Our Partner",
+      subtitle: "",
+      logos: []
+    }
+  ]
 };

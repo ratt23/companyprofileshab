@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { create } from "zustand";
-import { DatabaseState, Doctor, YearStats, SlideConfigItem } from "../types";
+import { DatabaseState, Doctor, YearStats, SlideConfigItem, ClinicSlide } from "../types";
 import { defaultDatabaseState } from "../default_data_payload";
 
 interface SlideState {
@@ -29,6 +29,7 @@ interface SlideState {
   loadDatabase: () => Promise<void>;
   updateDatabase: (newDoctors: Doctor[], newStats: YearStats[]) => Promise<void>;
   updateSlideConfig: (config: SlideConfigItem[]) => Promise<void>;
+  updateClinic: (clinicData: ClinicSlide) => Promise<void>;
   fetchSocialStats: () => Promise<void>;
   nextSlide: (totalSlides: number) => void;
   prevSlide: (totalSlides: number) => void;
@@ -88,6 +89,7 @@ export const useSlideStore = create<SlideState>((set, get) => ({
               plan: data.plan || defaultDatabaseState.plan,
               socials: data.socials || defaultDatabaseState.socials,
               slideConfig: data.slideConfig || undefined,
+              partners: data.partners || defaultDatabaseState.partners,
             },
             // Also restore slideConfig into store state
             slideConfig: data.slideConfig || [],
@@ -149,6 +151,27 @@ export const useSlideStore = create<SlideState>((set, get) => ({
       set({ dbState: updatedState, slideConfig: config });
     } catch (err) {
       console.error("Error saving slide config:", err);
+      throw err;
+    }
+  },
+
+  updateClinic: async (clinicData: ClinicSlide) => {
+    const { dbState } = get();
+    const updatedState: DatabaseState = {
+      ...dbState,
+      clinic: clinicData,
+    };
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${baseUrl}/api/data`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedState),
+      });
+      if (!response.ok) throw new Error("Failed to update clinic data");
+      set({ dbState: updatedState });
+    } catch (err) {
+      console.error("Error updating clinic data:", err);
       throw err;
     }
   },

@@ -840,7 +840,10 @@
       "One Stop Specialist Services",
       "Executive Lounge",
       "Personal Assistant"
-    ]
+    ],
+    "image1": "/clinic_bg.png",
+    "image2": "/clinic_inset1.png",
+    "image3": "/clinic_inset2.png"
   },
   "equipments": [
     {

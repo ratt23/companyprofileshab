@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Doctor, YearStats, SlideConfigItem } from "../types";
+import { Doctor, YearStats, ClinicSlide } from "../types";
 import {
   Trash2,
   PlusCircle,
@@ -10,34 +10,36 @@ import {
   X,
   FileText,
   Clock,
-  BriefcaseMedical,
-  Layers,
-  ChevronUp,
-  ChevronDown,
-  Eye,
-  EyeOff,
-  GripVertical,
-  LayoutList
+  BriefcaseMedical
 } from "lucide-react";
 
 interface AdminPanelProps {
   doctors: Doctor[];
   stats: YearStats[];
-  slideConfig: SlideConfigItem[];
+  clinic: ClinicSlide;
   onUpdateData: (newDoctors: Doctor[], newStats: YearStats[]) => Promise<void>;
-  onUpdateSlideConfig: (config: SlideConfigItem[]) => Promise<void>;
+  onUpdateClinic: (clinic: ClinicSlide) => Promise<void>;
   onClose: () => void;
 }
 
-export function AdminPanel({ doctors, stats, slideConfig, onUpdateData, onUpdateSlideConfig, onClose }: AdminPanelProps) {
+export function AdminPanel({ doctors, stats, clinic, onUpdateData, onUpdateClinic, onClose }: AdminPanelProps) {
   const [localDoctors, setLocalDoctors] = useState<Doctor[]>([...doctors]);
   const [localStats, setLocalStats] = useState<YearStats[]>([...stats]);
-  const [localSlideConfig, setLocalSlideConfig] = useState<SlideConfigItem[]>([...slideConfig]);
-  const [activeTab, setActiveTab] = useState<'doctors' | 'slides'>('doctors');
+  const [activeTab, setActiveTab] = useState<'doctors' | 'clinic'>('doctors');
   const [searchQuery, setSearchQuery] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [isSavingSlides, setIsSavingSlides] = useState(false);
   const [notification, setNotification] = useState("");
+
+  // Clinic Slide edit states
+  const [clinicTitle, setClinicTitle] = useState(clinic.title || "EXECUTIVE CLINIC");
+  const [clinicDescription, setClinicDescription] = useState(clinic.description || "");
+  const [clinicSchedule, setClinicSchedule] = useState(clinic.schedule || "");
+  const [clinicAmenities, setClinicAmenities] = useState<string[]>([...(clinic.amenities || [])]);
+  const [clinicImage1, setClinicImage1] = useState(clinic.image1 || "/clinic_bg.png");
+  const [clinicImage2, setClinicImage2] = useState(clinic.image2 || "/clinic_inset1.png");
+  const [clinicImage3, setClinicImage3] = useState(clinic.image3 || "/clinic_inset2.png");
+  const [newAmenity, setNewAmenity] = useState("");
+  const [isSavingClinic, setIsSavingClinic] = useState(false);
 
   // Editing state for individual doctor
   const [editingDoctorId, setEditingDoctorId] = useState<string | null>(null);
@@ -165,37 +167,7 @@ export function AdminPanel({ doctors, stats, slideConfig, onUpdateData, onUpdate
     }
   };
 
-  const handleSaveSlideConfig = async () => {
-    setIsSavingSlides(true);
-    try {
-      await onUpdateSlideConfig(localSlideConfig);
-      showNotice("Konfigurasi urutan slide berhasil disimpan!");
-      setTimeout(() => onClose(), 1500);
-    } catch (err) {
-      console.error(err);
-      alert("Gagal menyimpan konfigurasi slide.");
-    } finally {
-      setIsSavingSlides(false);
-    }
-  };
 
-  // Slide config helpers
-  const moveSlide = (index: number, direction: 'up' | 'down') => {
-    const arr = [...localSlideConfig];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= arr.length) return;
-    [arr[index], arr[targetIndex]] = [arr[targetIndex], arr[index]];
-    setLocalSlideConfig(arr);
-  };
-
-  const toggleSlide = (id: string) => {
-    setLocalSlideConfig(prev => prev.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s));
-  };
-
-  const resetSlideOrder = () => {
-    setLocalSlideConfig(slideConfig);
-    showNotice("Urutan slide direset ke konfigurasi tersimpan.");
-  };
 
   const showNotice = (msg: string) => {
     setNotification(msg);
@@ -220,7 +192,7 @@ export function AdminPanel({ doctors, stats, slideConfig, onUpdateData, onUpdate
             <Database className="w-8 h-8 text-amber-500" />
             <div>
               <h2 className="text-xl font-black">RSU Siloam Database Update Center</h2>
-              <p className="text-xs text-white/70">Manajemen Jadwal Dokter, Angka Kinerja & Urutan Slide Presentasi</p>
+              <p className="text-xs text-white/70">Manajemen Jadwal Dokter & Konten Executive Clinic</p>
             </div>
           </div>
           <button
@@ -244,21 +216,17 @@ export function AdminPanel({ doctors, stats, slideConfig, onUpdateData, onUpdate
             <BriefcaseMedical className="w-4 h-4" />
             <span>JADWAL DOKTER & METRIK</span>
           </button>
+
           <button
-            onClick={() => setActiveTab('slides')}
+            onClick={() => setActiveTab('clinic')}
             className={`flex items-center space-x-2 px-6 py-3.5 text-xs font-bold transition-all border-b-2 ${
-              activeTab === 'slides'
+              activeTab === 'clinic'
                 ? 'border-[#003399] text-[#003399] bg-white'
                 : 'border-transparent text-slate-400 hover:text-slate-600'
             }`}
           >
-            <LayoutList className="w-4 h-4" />
-            <span>URUTAN & VISIBILITAS SLIDE</span>
-            {localSlideConfig.filter(s => !s.enabled).length > 0 && (
-              <span className="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full ml-1">
-                {localSlideConfig.filter(s => !s.enabled).length} OFF
-              </span>
-            )}
+            <FileText className="w-4 h-4" />
+            <span>KONTEN EXECUTIVE CLINIC</span>
           </button>
         </div>
 
@@ -611,132 +579,147 @@ export function AdminPanel({ doctors, stats, slideConfig, onUpdateData, onUpdate
         </>
         )}
 
-        {/* === TAB: URUTAN & VISIBILITAS SLIDE === */}
-        {activeTab === 'slides' && (
+
+
+        {/* === TAB: KONTEN EXECUTIVE CLINIC === */}
+        {activeTab === 'clinic' && (
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="flex justify-between items-center mb-5">
-                <div>
-                  <h3 className="font-extrabold text-slate-800 text-sm tracking-wider uppercase flex items-center">
-                    <Layers className="w-4 h-4 mr-2 text-[#003399]" />
-                    KONFIGURASI URUTAN SLIDE ({localSlideConfig.length} slide)
-                  </h3>
-                  <p className="text-[10px] text-slate-400 mt-1 font-sans">
-                    Seret pakai tombol ↑↓ untuk mengatur urutan. Matikan tombol 👁 untuk menyembunyikan slide dari presentasi.
-                  </p>
-                </div>
-                <button
-                  onClick={resetSlideOrder}
-                  className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all border border-slate-200"
-                >
-                  <span>↺ Reset ke Default</span>
-                </button>
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-sm tracking-wider uppercase flex items-center">
+                  <FileText className="w-4 h-4 mr-2 text-[#003399]" />
+                  EDIT KONTEN EXECUTIVE CLINIC
+                </h3>
+                <p className="text-[10px] text-slate-400 mt-1 font-sans">
+                  Ubah judul, detail deskripsi, jam operasional, fasilitas penunjang, dan 3 gambar utama untuk slide Executive Clinic.
+                </p>
               </div>
 
-              {/* Stats bar */}
-              <div className="grid grid-cols-3 gap-3 mb-5">
-                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
-                  <div className="text-lg font-black text-emerald-700">{localSlideConfig.filter(s => s.enabled).length}</div>
-                  <div className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Slide Aktif</div>
+              {/* Text Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-450 uppercase font-mono">Judul Slide:</label>
+                  <input
+                    type="text"
+                    value={clinicTitle}
+                    onChange={(e) => setClinicTitle(e.target.value)}
+                    className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-bold"
+                    placeholder="e.g. EXECUTIVE CLINIC"
+                  />
                 </div>
-                <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-center">
-                  <div className="text-lg font-black text-red-600">{localSlideConfig.filter(s => !s.enabled).length}</div>
-                  <div className="text-[10px] text-red-500 font-bold uppercase tracking-wider">Slide Disembunyikan</div>
-                </div>
-                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center">
-                  <div className="text-lg font-black text-[#003399]">{localSlideConfig.length}</div>
-                  <div className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Total Slide</div>
+                <div className="flex flex-col space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-450 uppercase font-mono">Jadwal / Jam Kerja:</label>
+                  <input
+                    type="text"
+                    value={clinicSchedule}
+                    onChange={(e) => setClinicSchedule(e.target.value)}
+                    className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-bold"
+                    placeholder="e.g. Senin - Sabtu, 08:00 - 20:00"
+                  />
                 </div>
               </div>
 
-              {/* Slide list reorderable */}
-              <div className="space-y-2">
-                {localSlideConfig.map((slide, index) => (
-                  <div
-                    key={slide.id}
-                    className={`flex items-center space-x-3 p-3.5 rounded-xl border transition-all ${
-                      slide.enabled
-                        ? 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
-                        : 'bg-slate-50 border-slate-100 opacity-60'
-                    }`}
+              <div className="flex flex-col space-y-1.5">
+                <label className="text-[10px] font-black text-slate-450 uppercase font-mono">Deskripsi Clinic:</label>
+                <textarea
+                  value={clinicDescription}
+                  onChange={(e) => setClinicDescription(e.target.value)}
+                  className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 min-h-[60px]"
+                  placeholder="Deskripsi singkat clinic..."
+                />
+              </div>
+
+              {/* Images Fields */}
+              <div className="border-t border-slate-100 pt-4">
+                <h4 className="text-xs font-bold text-slate-700 uppercase mb-3">KONFIGURASI 3 GAMBAR UTAMA</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex flex-col space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-450 uppercase font-mono">Image 1 (Main Background):</label>
+                    <input
+                      type="text"
+                      value={clinicImage1}
+                      onChange={(e) => setClinicImage1(e.target.value)}
+                      className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[10px] text-slate-800 font-mono"
+                    />
+                    <span className="text-[9px] text-slate-400">Direkomendasikan foto lobby landscape 16:9</span>
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-450 uppercase font-mono">Image 2 (Top Inset):</label>
+                    <input
+                      type="text"
+                      value={clinicImage2}
+                      onChange={(e) => setClinicImage2(e.target.value)}
+                      className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[10px] text-slate-800 font-mono"
+                    />
+                    <span className="text-[9px] text-slate-400">Foto sofa / lounge dekat, border putih tebal</span>
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-450 uppercase font-mono">Image 3 (Bottom Inset):</label>
+                    <input
+                      type="text"
+                      value={clinicImage3}
+                      onChange={(e) => setClinicImage3(e.target.value)}
+                      className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[10px] text-slate-800 font-mono"
+                    />
+                    <span className="text-[9px] text-slate-400">Foto koridor / kursi tunggu, border putih tebal</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Amenities / Features List */}
+              <div className="border-t border-slate-100 pt-4">
+                <h4 className="text-xs font-bold text-slate-700 uppercase mb-3">LAYANAN & FASILITAS (AMENITIES)</h4>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {clinicAmenities.map((amenity, idx) => (
+                    <span key={idx} className="flex items-center text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-full border border-slate-200">
+                      <span>{amenity}</span>
+                      <button
+                        onClick={() => setClinicAmenities(clinicAmenities.filter((_, i) => i !== idx))}
+                        className="ml-2 text-red-500 font-bold hover:text-red-700 focus:outline-none"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                  {clinicAmenities.length === 0 && (
+                    <span className="text-xs italic text-slate-400">Belum ada layanan yang ditambahkan</span>
+                  )}
+                </div>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Tambah layanan/fasilitas baru..."
+                    value={newAmenity}
+                    onChange={(e) => setNewAmenity(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newAmenity.trim()) {
+                        e.preventDefault();
+                        setClinicAmenities([...clinicAmenities, newAmenity.trim()]);
+                        setNewAmenity("");
+                      }
+                    }}
+                    className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
+                  />
+                  <button
+                    onClick={() => {
+                      if (newAmenity.trim()) {
+                        setClinicAmenities([...clinicAmenities, newAmenity.trim()]);
+                        setNewAmenity("");
+                      }
+                    }}
+                    className="px-4 py-1.5 bg-[#003399] text-white rounded-xl text-xs font-bold"
                   >
-                    {/* Position number */}
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black shrink-0 ${
-                      slide.enabled ? 'bg-[#003399] text-white' : 'bg-slate-200 text-slate-400'
-                    }`}>
-                      {index + 1}
-                    </div>
-
-                    {/* Drag handle icon */}
-                    <GripVertical className="w-4 h-4 text-slate-300 shrink-0" />
-
-                    {/* Slide label */}
-                    <div className="flex-1 min-w-0">
-                      <span className={`text-xs font-bold truncate block ${
-                        slide.enabled ? 'text-slate-800' : 'text-slate-400 line-through'
-                      }`}>
-                        {slide.label}
-                      </span>
-                      {slide.isDynamic && (
-                        <span className="text-[9px] font-mono bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100 mt-0.5 inline-block">
-                          GRUP DINAMIS (berisi banyak slide dokter)
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Controls: toggle + move up/down */}
-                    <div className="flex items-center space-x-1 shrink-0">
-                      {/* Move up */}
-                      <button
-                        onClick={() => moveSlide(index, 'up')}
-                        disabled={index === 0}
-                        title="Pindah ke atas"
-                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-25 disabled:cursor-not-allowed transition-all text-slate-600"
-                      >
-                        <ChevronUp className="w-3.5 h-3.5" />
-                      </button>
-
-                      {/* Move down */}
-                      <button
-                        onClick={() => moveSlide(index, 'down')}
-                        disabled={index === localSlideConfig.length - 1}
-                        title="Pindah ke bawah"
-                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-25 disabled:cursor-not-allowed transition-all text-slate-600"
-                      >
-                        <ChevronDown className="w-3.5 h-3.5" />
-                      </button>
-
-                      {/* Toggle visibility */}
-                      <button
-                        onClick={() => toggleSlide(slide.id)}
-                        title={slide.enabled ? 'Sembunyikan slide ini' : 'Tampilkan slide ini'}
-                        className={`p-1.5 rounded-lg transition-all flex items-center space-x-1 px-2.5 text-[10px] font-bold ${
-                          slide.enabled
-                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
-                            : 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
-                        }`}
-                      >
-                        {slide.enabled ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                        <span>{slide.enabled ? 'ON' : 'OFF'}</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {localSlideConfig.length === 0 && (
-                  <div className="text-center py-12 text-slate-400">
-                    <Layers className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                    <p className="text-xs font-bold">Konfigurasi slide belum tersedia.</p>
-                    <p className="text-[10px] mt-1">Simpan dan reload untuk memuat konfigurasi default.</p>
-                  </div>
-                )}
+                    Tambah
+                  </button>
+                </div>
               </div>
+
             </div>
 
-            {/* Slide Config Save Footer */}
+            {/* Save Clinic Footer */}
             <div className="bg-slate-100 border-t border-slate-150 px-6 py-4 flex justify-between items-center shrink-0">
               <span className="text-[10px] text-slate-400 font-mono">
-                * Urutan & visibilitas akan langsung dipakai saat presentasi berikutnya.
+                * Perubahan akan langsung disimpan ke database slideshow.
               </span>
               <div className="flex space-x-2">
                 <button
@@ -746,12 +729,32 @@ export function AdminPanel({ doctors, stats, slideConfig, onUpdateData, onUpdate
                   Batal
                 </button>
                 <button
-                  onClick={handleSaveSlideConfig}
-                  disabled={isSavingSlides}
-                  className="px-6 py-2.5 bg-[#003399] hover:bg-[#002080] disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 shadow"
+                  onClick={async () => {
+                    setIsSavingClinic(true);
+                    try {
+                      await onUpdateClinic({
+                        title: clinicTitle,
+                        description: clinicDescription,
+                        schedule: clinicSchedule,
+                        amenities: clinicAmenities,
+                        image1: clinicImage1,
+                        image2: clinicImage2,
+                        image3: clinicImage3
+                      });
+                      showNotice("Konten Executive Clinic berhasil disimpan!");
+                      setTimeout(() => onClose(), 1500);
+                    } catch (err) {
+                      console.error(err);
+                      alert("Gagal menyimpan data Executive Clinic.");
+                    } finally {
+                      setIsSavingClinic(false);
+                    }
+                  }}
+                  disabled={isSavingClinic}
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 shadow"
                 >
                   <Save className="w-4 h-4" />
-                  <span>{isSavingSlides ? "Menyimpan..." : "Simpan Konfigurasi Slide"}</span>
+                  <span>{isSavingClinic ? "Menyimpan..." : "Simpan Konten Clinic"}</span>
                 </button>
               </div>
             </div>
