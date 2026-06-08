@@ -467,6 +467,37 @@ export default function App() {
 
   const totalSlides = activeSlides.length;
 
+  // Touch Swipe navigation
+  const touchStartXRef = useRef<number | null>(null);
+  const touchEndXRef = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndXRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartXRef.current || !touchEndXRef.current) return;
+    const distance = touchStartXRef.current - touchEndXRef.current;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextSlide(totalSlides);
+      setIsPlaying(false);
+    } else if (isRightSwipe) {
+      prevSlide(totalSlides);
+      setIsPlaying(false);
+    }
+
+    // Reset
+    touchStartXRef.current = null;
+    touchEndXRef.current = null;
+  };
+
   // Keyboard Navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -594,7 +625,33 @@ export default function App() {
                 prevSlide(totalSlides);
                 setIsPlaying(false);
               }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
+              {/* Semi-transparent Overlay Navigation Arrows */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevSlide(totalSlides);
+                  setIsPlaying(false);
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-50 p-2 md:p-3 bg-black/15 hover:bg-black/35 active:bg-black/55 text-white/50 hover:text-white rounded-full transition-all backdrop-blur-sm shadow-md border border-white/5 cursor-pointer"
+                title="Previous Slide"
+              >
+                <ChevronLeft className="w-8 h-8" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextSlide(totalSlides);
+                  setIsPlaying(false);
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-50 p-2 md:p-3 bg-black/15 hover:bg-black/35 active:bg-black/55 text-white/50 hover:text-white rounded-full transition-all backdrop-blur-sm shadow-md border border-white/5 cursor-pointer"
+                title="Next Slide"
+              >
+                <ChevronRight className="w-8 h-8" />
+              </button>
               {/* Global Animated Background waves */}
               <div className="absolute inset-0 pointer-events-none opacity-20 z-0 overflow-hidden">
                 <svg className="w-[120%] h-[120%] -translate-x-[10%] -translate-y-[10%]" viewBox="0 0 1440 800" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
@@ -659,7 +716,33 @@ export default function App() {
                 prevSlide(totalSlides);
                 setIsPlaying(false);
               }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
+              {/* Semi-transparent Overlay Navigation Arrows */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevSlide(totalSlides);
+                  setIsPlaying(false);
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-50 p-2 md:p-3 bg-black/15 hover:bg-black/35 active:bg-black/55 text-white/50 hover:text-white rounded-full transition-all backdrop-blur-sm shadow-md border border-white/5 cursor-pointer"
+                title="Previous Slide"
+              >
+                <ChevronLeft className="w-8 h-8" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextSlide(totalSlides);
+                  setIsPlaying(false);
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-50 p-2 md:p-3 bg-black/15 hover:bg-black/35 active:bg-black/55 text-white/50 hover:text-white rounded-full transition-all backdrop-blur-sm shadow-md border border-white/5 cursor-pointer"
+                title="Next Slide"
+              >
+                <ChevronRight className="w-8 h-8" />
+              </button>
               {/* Global Animated Background waves */}
               <div className="absolute inset-0 pointer-events-none opacity-20 z-0 overflow-hidden">
                 <svg className="w-[120%] h-[120%] -translate-x-[10%] -translate-y-[10%]" viewBox="0 0 1440 800" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
@@ -1058,7 +1141,33 @@ export default function App() {
                 prevSlide(totalSlides);
                 setIsPlaying(false);
               } : undefined}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
+              {/* Semi-transparent Overlay Navigation Arrows */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevSlide(totalSlides);
+                  setIsPlaying(false);
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-50 p-2 md:p-3 bg-black/15 hover:bg-black/35 active:bg-black/55 text-white/50 hover:text-white rounded-full transition-all backdrop-blur-sm shadow-md border border-white/5 cursor-pointer"
+                title="Previous Slide"
+              >
+                <ChevronLeft className="w-8 h-8" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextSlide(totalSlides);
+                  setIsPlaying(false);
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-50 p-2 md:p-3 bg-black/15 hover:bg-black/35 active:bg-black/55 text-white/50 hover:text-white rounded-full transition-all backdrop-blur-sm shadow-md border border-white/5 cursor-pointer"
+                title="Next Slide"
+              >
+                <ChevronRight className="w-8 h-8" />
+              </button>
               {/* Global Animated Background waves */}
               <div className="absolute inset-0 pointer-events-none opacity-20 z-0 overflow-hidden">
                 <svg className="w-[120%] h-[120%] -translate-x-[10%] -translate-y-[10%]" viewBox="0 0 1440 800" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">

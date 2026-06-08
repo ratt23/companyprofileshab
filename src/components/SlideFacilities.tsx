@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { ShieldAlert, Home, Activity, CheckSquare, Stethoscope, Briefcase, Sparkles, Star, Award, HeartHandshake } from "lucide-react";
 import { HospitalFacility } from "../types";
+import { getProxiedImageUrl } from "../utils/imageUtils";
 
 interface SlideFacilitiesProps {
   page: 1 | 2 | 3 | 4 | 5; // Corresponding to Pages 4, 5, 6, 7, 8
@@ -15,41 +16,56 @@ export function SlideFacilities({ page, facilities, pageNumber, totalPages }: Sl
   // so any facilities added from the dashboard will always display
   const getPageData = () => {
     switch (page) {
-      case 1: // Items 0-1
+      case 1: {
+        const page1Ids = ["facility-emergency", "facility-siloam-home"];
+        const items = page1Ids.map(id => facilities.find(f => f.id === id)).filter(Boolean) as HospitalFacility[];
         return {
           title: "Our Facilities",
           subtitle: "EMERGENCY & COMMUNITY SERVICES",
-          items: facilities.slice(0, 2),
-          colClass: "grid-cols-1 md:grid-cols-2",
+          items,
+          colClass: items.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2",
         };
-      case 2: // Items 2-3
+      }
+      case 2: {
+        const page2Ids = ["facility-radiology", "facility-outpatient"];
+        const items = page2Ids.map(id => facilities.find(f => f.id === id)).filter(Boolean) as HospitalFacility[];
         return {
           title: "Our Facilities",
           subtitle: "DIAGNOSTIC & SPECIALIST OUTPATIENT",
-          items: facilities.slice(2, 4),
-          colClass: "grid-cols-1 md:grid-cols-2",
+          items,
+          colClass: items.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2",
         };
-      case 3: // Items 4-5
+      }
+      case 3: {
+        const page3Ids = ["facility-inpatient", "facility-ambulance"];
+        const items = page3Ids.map(id => facilities.find(f => f.id === id)).filter(Boolean) as HospitalFacility[];
         return {
           title: "Our Facilities",
           subtitle: "PRIMARY RESCUE & GENERAL INPATIENT",
-          items: facilities.slice(4, 6),
-          colClass: "grid-cols-1 md:grid-cols-2",
+          items,
+          colClass: items.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2",
         };
-      case 4: // Items 6-8
+      }
+      case 4: {
+        const page4Ids = ["facility-vvip", "facility-vip", "facility-kelas-1"];
+        const items = page4Ids.map(id => facilities.find(f => f.id === id)).filter(Boolean) as HospitalFacility[];
         return {
           title: "Our Facilities",
           subtitle: "INPATIENT WARDS - PRIVATE & PREMIUM",
-          items: facilities.slice(6, 9),
-          colClass: facilities.slice(6, 9).length === 1 ? "grid-cols-1" : facilities.slice(6, 9).length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-3",
+          items,
+          colClass: items.length === 1 ? "grid-cols-1" : items.length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-3",
         };
-      case 5: // Items 9-10
+      }
+      case 5: {
+        const page5Ids = ["facility-kelas-2", "facility-kelas-3"];
+        const items = page5Ids.map(id => facilities.find(f => f.id === id)).filter(Boolean) as HospitalFacility[];
         return {
           title: "Our Facilities",
           subtitle: "INPATIENT WARDS - GENERAL",
-          items: facilities.slice(9, 11),
-          colClass: "grid-cols-1 md:grid-cols-2",
+          items,
+          colClass: items.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2",
         };
+      }
     }
   };
 
@@ -142,8 +158,12 @@ export function SlideFacilities({ page, facilities, pageNumber, totalPages }: Sl
       </div>
 
       {/* Action Content Box */}
-      <div className={`grid ${colClass} gap-6 my-auto z-10 items-stretch h-full py-4`}>
-        {items.map((facility, index) => {
+      {(() => {
+        const hasAnyDescription = items.some(item => item.description && item.description.trim() !== '');
+        const gridHeightClass = hasAnyDescription ? "h-full py-4" : "h-auto my-auto py-2";
+        return (
+          <div className={`grid ${colClass} gap-6 my-auto z-10 items-stretch ${gridHeightClass}`}>
+            {items.map((facility, index) => {
           const facilityImage = (facility as any).imageUrl || (facility as any).image || '';
           const hasPhoto = !!facilityImage;
           // For items that came from VVIP/VIP/Kelas rooms (no hardcoded bg color), use photo or white card
@@ -163,18 +183,15 @@ export function SlideFacilities({ page, facilities, pageNumber, totalPages }: Sl
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ delay: index * 0.1, duration: 0.4 }}
               whileHover={{ scale: 1.02 }}
-              className={`rounded-2xl border flex flex-col transition-all relative overflow-hidden group ${cardClass}`}
+              className={`rounded-2xl border flex flex-col transition-all relative overflow-hidden group max-w-[480px] w-full mx-auto ${cardClass}`}
             >
-              {/* Photo if available */}
               {hasPhoto && (
-                <div className="h-36 overflow-hidden flex-shrink-0">
+                <div className="w-full overflow-hidden flex-shrink-0 border-b border-slate-100 relative">
                   <img
-                    src={facilityImage}
+                    src={getProxiedImageUrl(facilityImage)}
                     alt={facility.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto block"
                   />
-                  {/* Bottom gradient overlay on photo */}
-                  <div className="absolute top-0 left-0 right-0 h-36 bg-gradient-to-b from-transparent to-white/30 pointer-events-none" />
                 </div>
               )}
 
@@ -202,9 +219,11 @@ export function SlideFacilities({ page, facilities, pageNumber, totalPages }: Sl
                   <h3 className={`text-xl font-black tracking-tight mb-2 ${darkText ? 'text-[#002f8a]' : 'text-white'}`}>
                     {facility.title}
                   </h3>
-                  <p className={`text-xs leading-relaxed ${darkText ? 'text-slate-500' : 'text-white/80'}`}>
-                    {facility.description}
-                  </p>
+                  {facility.description && (
+                    <p className={`text-xs leading-relaxed ${darkText ? 'text-slate-500' : 'text-white/80'}`}>
+                      {facility.description}
+                    </p>
+                  )}
                 </div>
 
                 {specItems.length > 0 && (
@@ -233,6 +252,8 @@ export function SlideFacilities({ page, facilities, pageNumber, totalPages }: Sl
           );
         })}
       </div>
+      );
+      })()}
 
       {/* Footer */}
       <div className="flex justify-between items-center text-slate-400 text-xs">
