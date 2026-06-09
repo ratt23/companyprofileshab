@@ -38,12 +38,7 @@ export function SlideEquipments({ page, data, pageNumber, totalPages }: SlideEqu
         <div className="flex items-center space-x-3">
           <img src="/logo.png" alt="Siloam Hospitals" className="h-6 w-auto object-contain" />
           <span className="text-xs text-slate-400 font-mono font-semibold border-l border-slate-200 pl-3">
-            Siloam Hospitals Ambon
-          </span>
-        </div>
-        <div className="text-right">
-          <span className="text-xs font-bold text-[#b0841a] tracking-widest uppercase">
-            MEDICAL EQUIPMENTS
+            RSU SIloam Ambon
           </span>
         </div>
       </div>

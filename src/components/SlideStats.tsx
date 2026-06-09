@@ -50,7 +50,7 @@ export function SlideStats({ stats, statsMeta, pageNumber, totalPages }: SlideSt
         <div className="flex items-center space-x-3">
           <img src="/logo.png" alt="Siloam Hospitals" className="h-6 w-auto object-contain" />
           <span className="text-xs text-slate-400 font-mono font-semibold border-l border-slate-200 pl-3">
-            Siloam Hospitals Ambon
+            RSU SIloam Ambon
           </span>
         </div>
         <div className="flex bg-slate-100 p-1 rounded-xl">

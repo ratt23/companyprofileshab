@@ -9,6 +9,7 @@ export interface Doctor {
   image_url?: string;
   avatarUrl?: string; // or base64
   active?: boolean;
+  is_landscape?: boolean;
 }
 
 export interface YearStats {

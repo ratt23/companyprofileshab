@@ -6,7 +6,7 @@ export function SlideCover({ data, pageNumber, totalPages }: { data?: CoverSlide
   // Use fallback if data is somehow missing
   const safeData = data || {
     title: "RSU Siloam Ambon",
-    tagline: "Siloam Hospitals Ambon CORPORATE PRESENTATION",
+    tagline: "RSU SIloam Ambon CORPORATE PRESENTATION",
     description: "Center of Excellence & Facility Presentation",
     image: ""
   };

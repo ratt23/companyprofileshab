@@ -36,7 +36,7 @@ export function SlideSocialMedia({ data, pageNumber, totalPages }: { data?: Soci
         <div className="flex items-center space-x-3">
           <img src="/logo.png" alt="Siloam Hospitals" className="h-6 w-auto object-contain" />
           <span className="text-xs text-slate-400 font-mono font-semibold border-l border-slate-200 pl-3">
-            Siloam Hospitals Ambon
+            RSU SIloam Ambon
           </span>
         </div>
         <div>

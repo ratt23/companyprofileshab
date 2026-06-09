@@ -22,12 +22,9 @@ export function SlideExcelence({ data, pageNumber, totalPages }: { data?: Excell
         <div className="flex items-center space-x-3">
           <img src="/logo.png" alt="Siloam Hospitals" className="h-6 w-auto object-contain" />
           <span className="text-xs text-slate-400 font-mono font-semibold border-l border-slate-200 pl-3">
-            Siloam Hospitals Ambon
+            RSU SIloam Ambon
           </span>
         </div>
-        <span className="text-sm font-semibold tracking-wider text-[#b0841a] bg-amber-50 px-3 py-1 rounded-full">
-          INDONESIA'S LEADING HOSPITALS
-        </span>
       </div>
 
       {/* Main content grid */}
@@ -38,7 +35,7 @@ export function SlideExcelence({ data, pageNumber, totalPages }: { data?: Excell
             animate={{ opacity: 1 }}
             className="text-xs uppercase font-bold tracking-widest text-[#b0841a]"
           >
-            Siloam Hospitals Ambon
+            RSU SIloam Ambon
           </motion.h4>
           <motion.h2
             initial={{ opacity: 0, y: -20 }}

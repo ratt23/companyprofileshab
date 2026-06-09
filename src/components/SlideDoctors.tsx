@@ -14,7 +14,7 @@ function DoctorPortrait({ doc, getInitials }: DoctorPortraitProps) {
   const imageUrl = getProxiedImageUrl(doc.image_url || doc.avatarUrl);
 
   return (
-    <div className="w-full aspect-[3/4] relative mb-4">
+    <div className={`w-full relative mb-4 transition-all duration-300 ${doc.is_landscape ? 'aspect-[16/9]' : 'aspect-[3/4]'}`}>
       {imageUrl && !hasError ? (
         <>
           <img 
@@ -68,7 +68,7 @@ export function SlideDoctors({ title, doctors, pageNumber, totalPages }: SlideDo
         <div className="flex items-center space-x-3">
           <img src="/logo.png" alt="Siloam Hospitals" className="h-6 w-auto object-contain" />
           <span className="text-xs text-slate-400 font-mono font-semibold border-l border-slate-200 pl-3">
-            Siloam Hospitals Ambon
+            RSU SIloam Ambon
           </span>
         </div>
       </div>
@@ -99,16 +99,18 @@ export function SlideDoctors({ title, doctors, pageNumber, totalPages }: SlideDo
         </div>
 
         {/* Right Column: Floating Doctor Portraits */}
-        <div className={`col-span-7 h-full flex items-center gap-4 ${doctors.length === 1 ? 'justify-center' : 'justify-start'}`}>
+        <div className={`col-span-7 h-full flex items-center gap-6 ${doctors.length === 1 ? 'justify-center' : 'justify-start'}`}>
             
           {doctors.map((doc, idx) => {
             return (
-                <motion.div
+              <motion.div
                 key={doc.id}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.15, duration: 0.6, ease: "easeOut" }}
-                className="flex flex-col items-center flex-1 max-w-[340px]"
+                className={`flex flex-col items-center flex-1 transition-all duration-300 ${
+                  doc.is_landscape ? 'max-w-[720px]' : 'max-w-[340px]'
+                }`}
               >
                 <DoctorPortrait doc={doc} getInitials={getInitials} />
 

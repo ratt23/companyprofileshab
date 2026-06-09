@@ -60,12 +60,7 @@ export function SlidePlan({ data, pageNumber, totalPages }: { data?: PlanSlide; 
         <div className="flex items-center space-x-3">
           <img src="/logo.png" alt="Siloam Hospitals" className="h-6 w-auto object-contain" />
           <span className="text-xs text-slate-400 font-mono font-semibold border-l border-slate-200 pl-3">
-            Siloam Hospitals Ambon
-          </span>
-        </div>
-        <div>
-          <span className="text-xs font-bold text-[#b0841a] tracking-widest bg-amber-50 px-3 py-1 rounded-full border border-amber-150/20">
-            BUSINESS STRATEGY ROADMAP
+            RSU SIloam Ambon
           </span>
         </div>
       </div>
