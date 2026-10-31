@@ -6,14 +6,6 @@ export const getProxiedImageUrl = (url: string | undefined): string => {
     return url;
   }
 
-  // Proxy Cloudinary and other external HTTP(S) images via the NephilimMS imageProxy function
-  if (url.includes("cloudinary.com") || url.startsWith("http")) {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
-    // Extract origin (e.g. "http://localhost:8888") from baseUrl (e.g. "http://localhost:8888/.netlify/functions/api")
-    const apiOrigin = baseUrl.replace(/\/\.netlify\/functions\/api\/?$/, "");
-    
-    return `${apiOrigin}/.netlify/functions/imageProxy?url=${encodeURIComponent(url)}`;
-  }
-
+  // Cloudinary and other external HTTP(S) images load directly over HTTPS
   return url;
 };

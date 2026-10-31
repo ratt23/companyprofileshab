@@ -1,9 +1,10 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  functions = "netlify/functions"
 
 [build.environment]
-  VITE_API_BASE_URL = "https://dashdev2.netlify.app/.netlify/functions/api"
+  VITE_API_BASE_URL = "https://graphicat.site/api"
   NODE_VERSION = "20"
 
 [dev]
@@ -18,9 +19,3 @@
   to = "/index.html"
   status = 200
   force = false
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "SAMEORIGIN"
-    X-Content-Type-Options = "nosniff"

@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
-  const PORT = Number(process.env.PORT) || 3010;
+  const PORT = Number(process.env.PORT) === 3001 ? 3007 : (Number(process.env.PORT) || 3007);
 
   // Middleware to parse JSON
   app.use(express.json());

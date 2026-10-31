@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { DatabaseState, Doctor, YearStats, SlideConfigItem, ClinicSlide } from "../types";
 import { defaultDatabaseState } from "../default_data_payload";
+import { buildApiUrl } from "../utils/apiConfig";
 
 interface SlideState {
   dbState: DatabaseState;
@@ -62,8 +63,7 @@ export const useSlideStore = create<SlideState>((set, get) => ({
   loadDatabase: async () => {
     set({ loading: true });
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
-      const response = await fetch(`${baseUrl}/api/data`);
+      const response = await fetch(buildApiUrl('data'));
       if (response.ok) {
         const data = await response.json();
         if (data && data.doctors) {
@@ -113,8 +113,7 @@ export const useSlideStore = create<SlideState>((set, get) => ({
     };
 
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
-      const response = await fetch(`${baseUrl}/api/data`, {
+      const response = await fetch(buildApiUrl('data'), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -141,8 +140,7 @@ export const useSlideStore = create<SlideState>((set, get) => ({
       slideConfig: config,
     };
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
-      const response = await fetch(`${baseUrl}/api/data`, {
+      const response = await fetch(buildApiUrl('data'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedState),
@@ -162,8 +160,7 @@ export const useSlideStore = create<SlideState>((set, get) => ({
       clinic: clinicData,
     };
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
-      const response = await fetch(`${baseUrl}/api/data`, {
+      const response = await fetch(buildApiUrl('data'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedState),
@@ -179,7 +176,7 @@ export const useSlideStore = create<SlideState>((set, get) => ({
   fetchSocialStats: async () => {
     try {
       // Endpoint internal backend (server.ts) yang kita buat
-      const response = await fetch("/api/social-stats");
+      const response = await fetch(buildApiUrl('social-stats'));
       if (response.ok) {
         const data = await response.json();
         set({ socialRealtimeData: data });

@@ -687,18 +687,24 @@
   "facilities": [
     {
       "id": "facility-emergency",
-      "title": "24 Hours Emergency",
+      "title": "IGD 24 Jam",
       "category": "Layanan Kontinu",
       "description": "Unit Gawat Darurat yang siap melayani 24 jam penuh dalam seminggu dengan dokter dan paramedis terlatih gawat darurat serta ambulans tanggap cepat.",
       "specs": [
         "Resusitasi Lengkap",
         "Dokter Jaga Gawat Darurat 24 Jam",
         "Perawat Bersertifikat BTCLS/ATLS"
-      ]
+      ],
+      "features": [
+        "Resusitasi Lengkap",
+        "Dokter Jaga Gawat Darurat 24 Jam",
+        "Perawat Bersertifikat BTCLS/ATLS"
+      ],
+      "image": "https://res.cloudinary.com/de5k1duyb/image/upload/v1780903398/usqqdnd4nib9x0lx3ylq.webp"
     },
     {
       "id": "facility-siloam-home",
-      "title": "Siloam at Home",
+      "title": "Siloam At Home",
       "category": "Layanan Kontinu",
       "description": "Layanan perawatan kesehatan berkualitas dari RSU Siloam langsung di kenyamanan rumah Anda, termasuk kunjungan dokter, perawat, fisioterapi, dan pengambilan laboratorium.",
       "specs": [
@@ -706,7 +712,14 @@
         "Pemberian Infus/Obat di Rumah",
         "Pengambilan Sampel Darah",
         "Pascabedah Monitoring"
-      ]
+      ],
+      "features": [
+        "Home Care Nursing",
+        "Pemberian Infus/Obat di Rumah",
+        "Pengambilan Sampel Darah",
+        "Pascabedah Monitoring"
+      ],
+      "image": "https://res.cloudinary.com/de5k1duyb/image/upload/v1780903401/fwlau5yn02umjfnef9kv.webp"
     },
     {
       "id": "facility-radiology",
@@ -718,100 +731,176 @@
         "Digital X-Ray",
         "Ultrasonografi (USG)",
         "C-Arm Fluoroskopi"
-      ]
+      ],
+      "features": [
+        "CT Scan Multi-Slice",
+        "Digital X-Ray",
+        "Ultrasonografi (USG)",
+        "C-Arm Fluoroskopi"
+      ],
+      "image": ""
     },
     {
       "id": "facility-outpatient",
       "title": "Outpatient",
       "category": "Layanan Kontinu",
-      "description": "Klinik Rawat Jalan komprehensif yang melayani konsultasi dokter spesialis, sub-spesialis, pemeriksaan umum, dan tindakan medis rawat jalan tanpa menginap.",
-      "specs": [
-        "Lebih dari 20 Poliklinik Spesialis",
-        "Sistem Registrasi Online",
-        "Apotek Rawat Jalan Terintegrasi"
-      ]
+      "description": "",
+      "specs": [],
+      "features": [],
+      "image": "https://res.cloudinary.com/de5k1duyb/image/upload/v1780903410/h441gsqrdqfjolwrl7mk.webp"
     },
     {
       "id": "facility-inpatient",
       "title": "Inpatient",
       "category": "Rawat Inap",
-      "description": "Layanan perawatan inap yang nyaman dengan dukungan tim keperawatan yang ramah dan kompeten untuk memulihkan kesehatan pasien secara prima.",
-      "specs": [
-        "VVIP Room",
-        "VIP Room",
-        "Kelas 1, 2, dan 3",
-        "Layanan Makanan Bergizi sesuai Diet Medis"
-      ]
+      "description": "",
+      "specs": [],
+      "features": [],
+      "image": "https://res.cloudinary.com/de5k1duyb/image/upload/v1780903423/pqsa8bzasatzmdu2ldqz.webp"
     },
     {
       "id": "facility-ambulance",
       "title": "Ambulance",
       "category": "Layanan Kontinu",
-      "description": "Armada ambulans tanggap darurat yang dilengkapi dengan peralatan penyelamat hidup instan untuk transportasi rujukan cepat.",
-      "specs": [
-        "Ventilator Transportable",
-        "Defibrillator & Monitoring",
-        "Bantuan Medis Pra-Rumah Sakit"
-      ]
+      "description": "",
+      "specs": [],
+      "features": []
     },
     {
       "id": "facility-vvip",
       "title": "Kamar Perawatan VVIP",
       "category": "Rawat Inap",
-      "description": "Kamar perawatan premium dengan fasilitas super lengkap seperti sofa santai keluarga, TV kabel, kulkas, dispenser, kamar mandi luxury, dan view estetis untuk pemulihan yang berkelas.",
+      "description": "",
       "specs": [
-        "1 Patient Bed Electric",
-        "Sofa Bed Keluarga",
-        "Pantry & Dining Set",
-        "Welcome Pack Premium"
-      ]
+        "1 Tempat tidur single elektrik untuk satu orang pasien / A single electric bed for one patient",
+        "1 Sofa bed / A sofa bed",
+        "1 Lemari obat kecil / A small medicine cabinet",
+        "1 Lemari pakaian / A wardrobe",
+        "1 Kotak pengaman / A safe deposit box",
+        "TV LCD 43 Inch",
+        "Kamar mandi pribadi / private bathroom",
+        "1 Lemari es mini / A mini refrigerator",
+        "1 Teko elektrik / An electric kettle",
+        "Sendal, Handuk dan perlengkapan mandi / Slipper, towel dan toiletries",
+        "Pemandangan teluk dan kota / bay view and city view"
+      ],
+      "features": [
+        "1 Tempat tidur single elektrik untuk satu orang pasien / A single electric bed for one patient",
+        "1 Sofa bed / A sofa bed",
+        "1 Lemari obat kecil / A small medicine cabinet",
+        "1 Lemari pakaian / A wardrobe",
+        "1 Kotak pengaman / A safe deposit box",
+        "TV LCD 43 Inch",
+        "Kamar mandi pribadi / private bathroom",
+        "1 Lemari es mini / A mini refrigerator",
+        "1 Teko elektrik / An electric kettle",
+        "Sendal, Handuk dan perlengkapan mandi / Slipper, towel dan toiletries",
+        "Pemandangan teluk dan kota / bay view and city view"
+      ],
+      "image": "https://res.cloudinary.com/de5k1duyb/image/upload/v1780897019/csa3ooimymvvilu8y7ii.webp",
+      "price": "1200000"
     },
     {
       "id": "facility-vip",
       "title": "Kamar Perawatan VIP",
       "category": "Rawat Inap",
-      "description": "Kamar rawat inap privat super nyaman dengan pendingin udara, sofa pendamping, kamar mandi dalam, TV, serta layanan keperawatan VIP berdedikasi.",
+      "description": "",
       "specs": [
-        "1 Patient Bed Electric",
-        "Sofa Tunggu",
-        "Kulkas Kecil & TV",
-        "Kamar Mandi Pribadi"
-      ]
+        "1 Tempat tidur single elektrik untuk satu orang pasien / A Single electric bed for one patient",
+        "1 Sofa / A Sofa",
+        "1 Lemari obat kecil / A Small medicine cabinet",
+        "1 Lemari pakaian / A Wardrobe",
+        "TV LCD 43 Inch",
+        "Kamar mandi pribadi / private bathroom",
+        "1 Lemari es mini / A mini refrigerator",
+        "1 Teko elektrik / An electric kettle",
+        "Sendal, Handuk dan perlengkapan mandi / Slipper, towel dan toiletries"
+      ],
+      "features": [
+        "1 Tempat tidur single elektrik untuk satu orang pasien / A Single electric bed for one patient",
+        "1 Sofa / A Sofa",
+        "1 Lemari obat kecil / A Small medicine cabinet",
+        "1 Lemari pakaian / A Wardrobe",
+        "TV LCD 43 Inch",
+        "Kamar mandi pribadi / private bathroom",
+        "1 Lemari es mini / A mini refrigerator",
+        "1 Teko elektrik / An electric kettle",
+        "Sendal, Handuk dan perlengkapan mandi / Slipper, towel dan toiletries"
+      ],
+      "price": "850000",
+      "image": "https://res.cloudinary.com/de5k1duyb/image/upload/v1780897273/rkfgrh8ed6kq2gj8j4mi.webp"
     },
     {
       "id": "facility-kelas-1",
       "title": "Kamar Perawatan Kelas I",
       "category": "Rawat Inap",
-      "description": "Kamar rawat inap semi-privat yang ideal, dihuni oleh maksimal 2 pasien dengan tirai pembatas steril untuk menjamin privasi selama masa perawatan.",
+      "description": "",
       "specs": [
-        "2 Patient Beds",
-        "Tirai Sekat Rel Gantung",
-        "Kamar Mandi Dalam",
-        "TV Bersama"
-      ]
+        "2 Tempat tidur single untuk dua orang pasien / 2 Single bed for two patients",
+        "2 Kursi / 2 Chairs",
+        "2 Lemari obat kecil / 2 Small medicine cabinets",
+        "2 Lemari pakaian / 2 Wardrobes",
+        "2 TV LCD 32 Inch",
+        "Kamar mandi bersama / shared bathroom",
+        "Sendal, Handuk dan perlengkapan mandi / Slipper, towel dan toiletries"
+      ],
+      "features": [
+        "2 Tempat tidur single untuk dua orang pasien / 2 Single bed for two patients",
+        "2 Kursi / 2 Chairs",
+        "2 Lemari obat kecil / 2 Small medicine cabinets",
+        "2 Lemari pakaian / 2 Wardrobes",
+        "2 TV LCD 32 Inch",
+        "Kamar mandi bersama / shared bathroom",
+        "Sendal, Handuk dan perlengkapan mandi / Slipper, towel dan toiletries"
+      ],
+      "image": "https://res.cloudinary.com/de5k1duyb/image/upload/v1780897346/obs7htgbvecvfbn8lcwx.webp",
+      "price": "550000"
     },
     {
       "id": "facility-kelas-2",
       "title": "Kamar Perawatan Kelas 2",
       "category": "Rawat Inap",
-      "description": "Kamar rawat inap kolektif yang higienis, dihuni oleh maksimal 3-4 pasien dengan fasilitas pendingin ruangan dan kamar mandi yang memadai.",
+      "description": "",
       "specs": [
-        "3-4 Patient Beds",
-        "Air Conditioner",
-        "Kamar Mandi Dalam",
-        "Tirai Anti-Bakteri"
-      ]
+        "4 Tempat tidur single untuk empat orang pasien / 4 Single bed for four patients",
+        "4 Kursi / 4 Chairs",
+        "4 Lemari pakaian / 4 Wardrobes",
+        "Kamar mandi bersama / shared bathroom",
+        "Sendal, Handuk dan perlengkapan mandi / Slipper, towel dan toiletries"
+      ],
+      "features": [
+        "4 Tempat tidur single untuk empat orang pasien / 4 Single bed for four patients",
+        "4 Kursi / 4 Chairs",
+        "4 Lemari pakaian / 4 Wardrobes",
+        "Kamar mandi bersama / shared bathroom",
+        "Sendal, Handuk dan perlengkapan mandi / Slipper, towel dan toiletries"
+      ],
+      "image": "https://res.cloudinary.com/de5k1duyb/image/upload/v1780897390/verkskiznlkjxmivxesm.webp",
+      "price": "400000"
     },
     {
       "id": "facility-kelas-3",
       "title": "Kamar Perawatan Kelas 3",
       "category": "Rawat Inap",
-      "description": "Kamar perawatan kolektif bernilai ekonomis tinggi dengan standar kebersihan, keamanan, dan sirkulasi udara optimal sesuai standar akreditasi rumah sakit.",
+      "description": "",
       "specs": [
-        "Beds Higienis Berjarak Standar",
-        "Sistem Panggilan Suster Terintegrasi",
-        "Kamar Mandi Bersih"
-      ]
+        "8 Tempat tidur single untuk delapan orang pasien / 8 Single bed for eight patients",
+        "8 Kursi / 8 Chairs",
+        "8 Lemari pakaian / 8 Wardrobes",
+        "2 kamar mandi terpisah pria dan wanita / 2 bathrooms (male dan female are seperated)",
+        "1 dispenser air / 1 Water dispenser",
+        "Sendal, Handuk dan perlengkapan mandi / Slipper, towel dan toiletries"
+      ],
+      "features": [
+        "8 Tempat tidur single untuk delapan orang pasien / 8 Single bed for eight patients",
+        "8 Kursi / 8 Chairs",
+        "8 Lemari pakaian / 8 Wardrobes",
+        "2 kamar mandi terpisah pria dan wanita / 2 bathrooms (male dan female are seperated)",
+        "1 dispenser air / 1 Water dispenser",
+        "Sendal, Handuk dan perlengkapan mandi / Slipper, towel dan toiletries"
+      ],
+      "image": "https://res.cloudinary.com/de5k1duyb/image/upload/v1780897426/zaqfitqjfvvyu6frjf0w.webp",
+      "price": "200000"
     }
   ],
   "cover": {
