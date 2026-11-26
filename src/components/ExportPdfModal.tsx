@@ -1,7 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
 import { toJpeg } from "html-to-image";
-import { Download, Eye, EyeOff, Lock, RefreshCw, X, AlertCircle } from "lucide-react";
+import {
+  Download,
+  Eye,
+  EyeOff,
+  Lock,
+  RefreshCw,
+  X,
+  AlertCircle,
+  CheckSquare,
+  Square,
+} from "lucide-react";
 import { SlideConfigItem } from "../types";
 
 interface ExportPdfModalProps {
@@ -14,6 +24,28 @@ interface ExportPdfModalProps {
 const EXPORT_PASSWORD = "rattratt23#";
 const SLIDE_WIDTH = 1280;
 const SLIDE_HEIGHT = 720;
+const TRANSPARENT_PIXEL =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+const waitForImages = (container: HTMLElement, timeoutMs = 2500) => {
+  const imgs = Array.from(container.querySelectorAll("img"));
+  if (imgs.length === 0) return Promise.resolve();
+
+  return Promise.race([
+    Promise.all(
+      imgs.map(
+        (img) =>
+          new Promise<void>((resolve) => {
+            if (img.complete) return resolve();
+            const done = () => resolve();
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+          })
+      )
+    ),
+    new Promise<void>((resolve) => setTimeout(resolve, timeoutMs)),
+  ]);
+};
 
 export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
   isOpen,
@@ -21,25 +53,79 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
   activeSlides,
   renderSlide,
 }) => {
+  // Exclude Social Media slide (embeds external Elfsight/Google widgets that block CORS)
+  const exportableSlides = activeSlides.filter((slide) => slide.id !== "socials");
+
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isExporting, setIsExporting] = useState(false);
-  const [progress, setProgress] = useState({ current: 0, total: 0 });
-  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [progress, setProgress] = useState({ current: 0, total: 0, label: "" });
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [renderingSlide, setRenderingSlide] = useState<{
+    id: string;
+    pageNumber: number;
+  } | null>(null);
 
-  // Exclude Social Media slide (embeds external Elfsight/Google widgets that block CORS)
-  const exportableSlides = activeSlides.filter((slide) => slide.id !== "socials");
+  const stageRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      setSelectedIds(
+        activeSlides.filter((s) => s.id !== "socials").map((s) => s.id)
+      );
+    } else {
       setPassword("");
       setShowPassword(false);
       setError("");
       setIsExporting(false);
-      setProgress({ current: 0, total: 0 });
+      setRenderingSlide(null);
+      setProgress({ current: 0, total: 0, label: "" });
     }
-  }, [isOpen]);
+  }, [isOpen, activeSlides]);
+
+  const toggleSlide = (id: string) => {
+    if (isExporting) return;
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const toggleAll = () => {
+    if (isExporting) return;
+    if (selectedIds.length === exportableSlides.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(exportableSlides.map((s) => s.id));
+    }
+  };
+
+  const captureCurrentStage = async (): Promise<string> => {
+    const el = stageRef.current;
+    if (!el) throw new Error("Stage element not found");
+
+    await waitForImages(el);
+    await new Promise((r) => setTimeout(r, 320));
+
+    const baseOptions = {
+      width: SLIDE_WIDTH,
+      height: SLIDE_HEIGHT,
+      pixelRatio: 1.5,
+      quality: 0.9,
+      backgroundColor: "#ffffff",
+      imagePlaceholder: TRANSPARENT_PIXEL,
+    };
+
+    try {
+      return await toJpeg(el, baseOptions);
+    } catch {
+      // Fallback: skip external font embedding if a cross-origin stylesheet blocks fetch
+      return await toJpeg(el, {
+        ...baseOptions,
+        skipFonts: true,
+      });
+    }
+  };
 
   const handleExport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,12 +136,18 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
       return;
     }
 
+    const slidesToExport = exportableSlides.filter((s) =>
+      selectedIds.includes(s.id)
+    );
+
+    if (slidesToExport.length === 0) {
+      setError("Pilih minimal 1 slide untuk di-export.");
+      return;
+    }
+
     setError("");
     setIsExporting(true);
-    setProgress({ current: 0, total: exportableSlides.length });
-
-    // Give off-screen slides time to mount, load images, and finish initial render
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    setProgress({ current: 0, total: slidesToExport.length, label: "" });
 
     try {
       const pdf = new jsPDF({
@@ -65,45 +157,70 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
         hotfixes: ["px_scaling"],
       });
 
-      for (let i = 0; i < exportableSlides.length; i++) {
-        const el = slideRefs.current[i];
-        if (!el) continue;
+      let addedPages = 0;
 
-        setProgress({ current: i + 1, total: exportableSlides.length });
+      for (let i = 0; i < slidesToExport.length; i++) {
+        const slide = slidesToExport[i];
+        const originalPageNumber =
+          activeSlides.findIndex((s) => s.id === slide.id) + 1;
 
-        const dataUrl = await toJpeg(el, {
-          width: SLIDE_WIDTH,
-          height: SLIDE_HEIGHT,
-          pixelRatio: 1.5,
-          quality: 0.92,
-          backgroundColor: "#ffffff",
-          imagePlaceholder:
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+        setProgress({
+          current: i + 1,
+          total: slidesToExport.length,
+          label: slide.label,
         });
 
-        if (i > 0) {
+        setRenderingSlide({
+          id: slide.id,
+          pageNumber: originalPageNumber > 0 ? originalPageNumber : i + 1,
+        });
+
+        // Wait for React to mount the single slide into stageRef
+        await new Promise((r) => setTimeout(r, 150));
+
+        const dataUrl = await captureCurrentStage();
+
+        if (addedPages > 0) {
           pdf.addPage([SLIDE_WIDTH, SLIDE_HEIGHT], "landscape");
         }
-        pdf.addImage(dataUrl, "JPEG", 0, 0, SLIDE_WIDTH, SLIDE_HEIGHT, undefined, "FAST");
+        pdf.addImage(
+          dataUrl,
+          "JPEG",
+          0,
+          0,
+          SLIDE_WIDTH,
+          SLIDE_HEIGHT,
+          undefined,
+          "FAST"
+        );
+        addedPages++;
       }
 
       pdf.save("RSU-Siloam-Ambon-Slides.pdf");
+      setRenderingSlide(null);
       setIsExporting(false);
       onClose();
     } catch (err) {
       console.error("Gagal export PDF:", err);
-      setError("Terjadi kesalahan saat membuat PDF. Silakan coba lagi.");
+      setError(
+        "Terjadi kesalahan saat membuat PDF. Coba kurangi jumlah slide atau coba lagi."
+      );
+      setRenderingSlide(null);
       setIsExporting(false);
     }
   };
 
   if (!isOpen) return null;
 
+  const allSelected =
+    exportableSlides.length > 0 &&
+    selectedIds.length === exportableSlides.length;
+
   return (
     <>
       {/* Modal Overlay */}
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1C1B19]/60 backdrop-blur-sm p-4">
-        <div className="w-full max-w-md bg-[#FAF8F4] text-[#1C1B19] rounded-[24px] border border-black/[0.08] shadow-[0_24px_60px_rgba(28,27,25,0.28)] overflow-hidden">
+        <div className="w-full max-w-lg bg-[#FAF8F4] text-[#1C1B19] rounded-[24px] border border-black/[0.08] shadow-[0_24px_60px_rgba(28,27,25,0.28)] overflow-hidden">
           {/* Header */}
           <div className="bg-[#1C1B19] text-[#FAF8F4] px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -111,9 +228,12 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
                 <Lock className="w-4 h-4" />
               </div>
               <div>
-                <h2 className="font-extrabold text-sm tracking-tight">Export Slide ke PDF</h2>
+                <h2 className="font-extrabold text-sm tracking-tight">
+                  Export Slide ke PDF
+                </h2>
                 <p className="text-[11px] text-[#FAF8F4]/70">
-                  {exportableSlides.length} slide siap diunduh (tanpa slide Social Media)
+                  {selectedIds.length} dari {exportableSlides.length} slide
+                  dipilih (tanpa Social Media)
                 </p>
               </div>
             </div>
@@ -130,11 +250,52 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
 
           {/* Body */}
           <form onSubmit={handleExport} className="p-6 space-y-4">
-            <p className="text-xs text-[#6F6A61] leading-relaxed">
-              Masukkan password otorisasi sebelum mengunduh seluruh presentasi{" "}
-              <span className="font-bold text-[#1C1B19]">RSU Siloam Ambon</span> dalam format PDF.
-            </p>
+            {/* Slide Selector */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-extrabold uppercase tracking-wider text-[#6F6A61]">
+                  Pilih Slide yang Di-export
+                </label>
+                <button
+                  type="button"
+                  onClick={toggleAll}
+                  disabled={isExporting}
+                  className="text-[11px] font-bold text-[#2F6A57] hover:underline disabled:opacity-50"
+                >
+                  {allSelected ? "Batal Pilih Semua" : "Pilih Semua"}
+                </button>
+              </div>
 
+              <div className="max-h-44 overflow-y-auto bg-[#F6F3EC] border border-black/[0.08] rounded-xl p-2 space-y-1">
+                {exportableSlides.map((slide, idx) => {
+                  const checked = selectedIds.includes(slide.id);
+                  return (
+                    <button
+                      key={slide.id}
+                      type="button"
+                      onClick={() => toggleSlide(slide.id)}
+                      disabled={isExporting}
+                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-left text-xs transition-colors ${
+                        checked
+                          ? "bg-[#FAF8F4] text-[#1C1B19] font-semibold shadow-2xs"
+                          : "text-[#6F6A61] hover:bg-black/5"
+                      }`}
+                    >
+                      {checked ? (
+                        <CheckSquare className="w-4 h-4 text-[#2F6A57] shrink-0" />
+                      ) : (
+                        <Square className="w-4 h-4 text-[#6F6A61]/60 shrink-0" />
+                      )}
+                      <span className="truncate">
+                        {idx + 1}. {slide.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Password Input */}
             <div className="space-y-1.5">
               <label className="block text-[11px] font-extrabold uppercase tracking-wider text-[#6F6A61]">
                 Password Export
@@ -157,9 +318,15 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
                   onClick={() => setShowPassword((prev) => !prev)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6F6A61] hover:text-[#1C1B19]"
                   tabIndex={-1}
-                  aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+                  aria-label={
+                    showPassword ? "Sembunyikan password" : "Lihat password"
+                  }
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -173,12 +340,14 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
 
             {isExporting && (
               <div className="space-y-2 bg-[#F6F3EC] border border-black/[0.06] rounded-xl p-3.5">
-                <div className="flex items-center justify-between text-xs font-bold text-[#1C1B19]">
-                  <span className="flex items-center gap-2">
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#2F6A57]" />
-                    Memproses PDF...
+                <div className="flex items-center justify-between text-xs font-bold text-[#1C1B19] gap-2">
+                  <span className="flex items-center gap-2 truncate">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#2F6A57] shrink-0" />
+                    <span className="truncate">
+                      {progress.label || "Memproses PDF..."}
+                    </span>
                   </span>
-                  <span className="tabular-nums text-[#2F6A57]">
+                  <span className="tabular-nums text-[#2F6A57] shrink-0">
                     {progress.current} / {progress.total}
                   </span>
                 </div>
@@ -186,14 +355,20 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
                   <div
                     className="h-full bg-[#2F6A57] transition-all duration-300"
                     style={{
-                      width: `${progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0}%`,
+                      width: `${
+                        progress.total > 0
+                          ? Math.round(
+                              (progress.current / progress.total) * 100
+                            )
+                          : 0
+                      }%`,
                     }}
                   />
                 </div>
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-2.5 pt-2">
+            <div className="flex items-center justify-end gap-2.5 pt-1">
               <button
                 type="button"
                 onClick={onClose}
@@ -204,19 +379,25 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={isExporting || !password.trim()}
+                disabled={
+                  isExporting || !password.trim() || selectedIds.length === 0
+                }
                 className="px-5 py-2 rounded-full bg-[#1C1B19] hover:bg-[#32302C] text-[#FAF8F4] text-xs font-bold flex items-center gap-2 transition-colors disabled:opacity-50"
               >
                 <Download className="w-3.5 h-3.5 text-[#F4CF5D]" />
-                <span>{isExporting ? "Mengexport..." : "Download PDF"}</span>
+                <span>
+                  {isExporting
+                    ? "Mengexport..."
+                    : `Download PDF (${selectedIds.length})`}
+                </span>
               </button>
             </div>
           </form>
         </div>
       </div>
 
-      {/* Off-screen 16:9 Slide Render Stage during export */}
-      {isExporting && (
+      {/* Single-Slide Off-screen Render Stage (prevents memory spike/timeouts) */}
+      {isExporting && renderingSlide && (
         <div
           aria-hidden="true"
           style={{
@@ -224,25 +405,22 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
             left: "-20000px",
             top: 0,
             width: `${SLIDE_WIDTH}px`,
+            height: `${SLIDE_HEIGHT}px`,
             pointerEvents: "none",
             zIndex: -1,
           }}
         >
-          {exportableSlides.map((slide, idx) => (
-            <div
-              key={`${slide.id}-${idx}`}
-              ref={(el) => {
-                slideRefs.current[idx] = el;
-              }}
-              style={{
-                width: `${SLIDE_WIDTH}px`,
-                height: `${SLIDE_HEIGHT}px`,
-              }}
-              className="relative bg-white overflow-hidden flex flex-col justify-between"
-            >
-              {renderSlide(slide.id, idx + 1)}
-            </div>
-          ))}
+          <div
+            ref={stageRef}
+            key={`${renderingSlide.id}-${renderingSlide.pageNumber}`}
+            style={{
+              width: `${SLIDE_WIDTH}px`,
+              height: `${SLIDE_HEIGHT}px`,
+            }}
+            className="relative bg-white overflow-hidden flex flex-col justify-between"
+          >
+            {renderSlide(renderingSlide.id, renderingSlide.pageNumber)}
+          </div>
         </div>
       )}
     </>
