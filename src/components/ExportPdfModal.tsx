@@ -28,6 +28,9 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  // Exclude Social Media slide (embeds external Elfsight/Google widgets that block CORS)
+  const exportableSlides = activeSlides.filter((slide) => slide.id !== "socials");
+
   useEffect(() => {
     if (!isOpen) {
       setPassword("");
@@ -49,7 +52,7 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
 
     setError("");
     setIsExporting(true);
-    setProgress({ current: 0, total: activeSlides.length });
+    setProgress({ current: 0, total: exportableSlides.length });
 
     // Give off-screen slides time to mount, load images, and finish initial render
     await new Promise((resolve) => setTimeout(resolve, 800));
@@ -62,11 +65,11 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
         hotfixes: ["px_scaling"],
       });
 
-      for (let i = 0; i < activeSlides.length; i++) {
+      for (let i = 0; i < exportableSlides.length; i++) {
         const el = slideRefs.current[i];
         if (!el) continue;
 
-        setProgress({ current: i + 1, total: activeSlides.length });
+        setProgress({ current: i + 1, total: exportableSlides.length });
 
         const dataUrl = await toJpeg(el, {
           width: SLIDE_WIDTH,
@@ -74,6 +77,8 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
           pixelRatio: 1.5,
           quality: 0.92,
           backgroundColor: "#ffffff",
+          imagePlaceholder:
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
         });
 
         if (i > 0) {
@@ -108,7 +113,7 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
               <div>
                 <h2 className="font-extrabold text-sm tracking-tight">Export Slide ke PDF</h2>
                 <p className="text-[11px] text-[#FAF8F4]/70">
-                  {activeSlides.length} slide aktif siap diunduh
+                  {exportableSlides.length} slide siap diunduh (tanpa slide Social Media)
                 </p>
               </div>
             </div>
@@ -223,7 +228,7 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
             zIndex: -1,
           }}
         >
-          {activeSlides.map((slide, idx) => (
+          {exportableSlides.map((slide, idx) => (
             <div
               key={`${slide.id}-${idx}`}
               ref={(el) => {
