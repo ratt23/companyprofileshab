@@ -1,33 +1,39 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Aileron", "Poppins", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: "Poppins", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "Plus Jakarta Sans", "Aileron", "Poppins", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Plus Jakarta Sans", ui-monospace, SFMono-Regular, monospace;
 }
 
-/* Custom visual support styling */
+/* Warm Editorial Presenter Canvas */
 body {
   font-family: var(--font-sans);
   margin: 0;
   padding: 0;
-  background-color: #020617; /* rich dark slate matching main canvas outer background */
+  background-color: #F6F3EC;
+  color: #1C1B19;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Custom scrollbars for modals */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #EFECE4;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #D4CEC2;
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #B8B0A2;
 }
 
 /* Make esbuild bundle-friendly */

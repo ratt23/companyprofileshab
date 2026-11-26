@@ -13,6 +13,7 @@ import { SlideDoctors } from "./components/SlideDoctors";
 import { SlideSocialMedia } from "./components/SlideSocialMedia";
 import { RosterView } from "./components/RosterView";
 import { AdminPanel } from "./components/AdminPanel";
+import { ExportPdfModal } from "./components/ExportPdfModal";
 import { useSlideStore } from "./store/useStore";
 import {
   ChevronLeft,
@@ -28,7 +29,8 @@ import {
   RefreshCw,
   Clock,
   X,
-  LayoutList
+  LayoutList,
+  FileDown
 } from "lucide-react";
 
 interface DynamicSlide {
@@ -258,6 +260,7 @@ export default function App() {
   } = useSlideStore();
 
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -901,7 +904,7 @@ export default function App() {
                 </button>
                 <button
                   onClick={() => setElapsedSeconds(0)}
-                  className="px-3 py-1.5 bg-slate-805 hover:bg-slate-800 border border-slate-700 text-slate-300 rounded-lg text-xs font-bold leading-none transition-colors"
+                  className="px-3.5 py-1.5 bg-[#EFECE4] hover:bg-[#E4DFD4] border border-black/[0.06] text-[#1C1B19] rounded-full text-xs font-bold leading-none transition-colors"
                 >
                   Reset
                 </button>
@@ -916,12 +919,12 @@ export default function App() {
             
             {/* Next Slide Preview */}
             <div className="flex flex-col space-y-1.5 h-[45%] min-h-[180px] shrink-0">
-              <span className="text-xs font-black tracking-widest text-slate-400 uppercase font-sans">
-                SLIDE BERIKUTNYA:
+              <span className="text-[11px] font-extrabold tracking-widest text-[#6F6A61] uppercase font-sans">
+                Slide Berikutnya
               </span>
               <div 
                 ref={nextPreviewRef}
-                className="flex-grow w-full min-h-0 bg-slate-950/40 rounded-xl border border-slate-800/80 overflow-hidden relative flex items-center justify-center select-none"
+                className="flex-grow w-full min-h-0 bg-[#FAF8F4] rounded-[22px] border border-black/[0.06] overflow-hidden relative flex items-center justify-center select-none shadow-xs"
               >
                 <div
                   className="relative bg-white shadow-lg overflow-hidden select-none shrink-0"
@@ -953,17 +956,17 @@ export default function App() {
                   </div>
                 </div>
               </div>
-              <span className="text-[10px] text-amber-500 font-bold block truncate w-full mt-0.5 font-mono">
+              <span className="text-[11px] text-[#2F6A57] font-bold block truncate w-full mt-0.5">
                 {nextSlideItem ? `${nextSlideIndex + 1}. ${nextSlideItem.label}` : "None"}
               </span>
             </div>
 
             {/* Slide list navigator sidebar */}
-            <div className="flex flex-col space-y-1.5 flex-grow min-h-[180px] overflow-hidden">
-              <span className="text-xs font-black tracking-widest text-slate-400 uppercase font-sans">
-                NAVIGASI DAFTAR ISI SLIDE:
+            <div className="flex flex-col space-y-2 flex-grow min-h-[180px] overflow-hidden">
+              <span className="text-[11px] font-extrabold tracking-widest text-[#6F6A61] uppercase font-sans">
+                Navigasi Daftar Isi Slide
               </span>
-              <div className="flex-1 overflow-y-auto bg-slate-900/50 border border-slate-800/80 rounded-2xl p-2 space-y-1">
+              <div className="flex-1 overflow-y-auto bg-[#FAF8F4] border border-black/[0.06] rounded-[20px] p-2 space-y-1 shadow-xs">
                 {activeSlides.map((slide, idx) => (
                   <button
                     key={idx}
@@ -971,15 +974,15 @@ export default function App() {
                       setCurrentSlideIndex(idx);
                       setIsPlaying(false);
                     }}
-                    className={`w-full text-left px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all flex justify-between items-center ${
+                    className={`w-full text-left px-3 py-2 rounded-xl text-[11px] font-bold transition-all flex justify-between items-center ${
                       currentSlideIndex === idx
-                        ? "bg-amber-600/20 text-amber-400 border border-amber-500/30"
-                        : "text-slate-400 hover:text-slate-200 hover:bg-slate-850 border border-transparent"
+                        ? "bg-[#1C1B19] text-[#FAF8F4] shadow-xs"
+                        : "text-[#6F6A61] hover:text-[#1C1B19] hover:bg-[#EFECE4]/70"
                     }`}
                   >
                     <span className="truncate">{idx + 1}. {slide.label}</span>
                     {currentSlideIndex === idx && (
-                      <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-1 rounded font-mono">ACTIVE</span>
+                      <span className="bg-[#F4CF5D] text-[#1C1B19] font-extrabold text-[9px] px-1.5 py-0.5 rounded-full">ACTIVE</span>
                     )}
                   </button>
                 ))}
@@ -993,43 +996,35 @@ export default function App() {
   };
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-between bg-slate-950 font-sans text-white select-none relative overflow-hidden">
-      
-      {/* Background ambient lighting */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-[#003399]/10 rounded-full filter blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#b0841a]/5 rounded-full filter blur-3xl pointer-events-none" />
+    <div className="w-screen h-screen flex flex-col items-center justify-between bg-[#F6F3EC] font-sans text-[#1C1B19] select-none relative overflow-hidden p-2 sm:p-3 gap-2.5">
 
-      {/* Primary Top Action Bar */}
-      <header className="w-full bg-slate-900/40 backdrop-blur-md border-b border-slate-800/50 px-6 py-3 shrink-0 flex justify-between items-center z-30">
+      {/* Floating Dark Pill Top Action Bar (#1C1B19) */}
+      <header className="w-full bg-[#1C1B19] text-[#FAF8F4] rounded-full px-5 py-2.5 shrink-0 flex justify-between items-center z-30 shadow-[0_10px_28px_rgba(28,27,25,0.16)] border border-white/10">
         <div className="flex items-center space-x-3">
-          <Tv className="w-5 h-5 text-amber-500" />
-          <div>
-            <span className="font-extrabold text-sm tracking-tight text-white">
+          <div className="w-7 h-7 rounded-full bg-[#F4CF5D] text-[#1C1B19] flex items-center justify-center">
+            <Tv className="w-3.5 h-3.5" />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-extrabold text-sm tracking-tight text-[#FAF8F4]">
               RSU Siloam Ambon
             </span>
-            <span className="text-[10px] ml-2 font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-900/30">
-              ● LIVE PRESENTER ACTIVE
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-bold text-[#FAF8F4] bg-[#2F6A57] px-2.5 py-0.5 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#F4CF5D] animate-pulse" />
+              LIVE PRESENTER
             </span>
           </div>
         </div>
 
-        {/* Presenter Database Query Tools & Locks */}
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setShowRoster(true)}
-            className="px-3.5 py-1.5 bg-slate-800 hover:bg-[#003399] rounded-xl text-xs font-bold leading-none flex items-center space-x-1.5 transition-all text-slate-200 border border-slate-700/50 shadow"
-          >
-            <Users className="w-3.5 h-3.5 text-amber-500" />
-            <span>Cari Roster Dokter ({dbState.doctors.length})</span>
-          </button>
-          <button
-            onClick={() => setShowAdmin(true)}
-            className="px-3.5 py-1.5 bg-slate-800 hover:bg-[#003399] rounded-xl text-xs font-bold leading-none flex items-center space-x-1.5 transition-all text-slate-200 border border-slate-700/50 shadow"
-          >
-            <Settings className="w-3.5 h-3.5 text-amber-500" />
-            <span>Admin Panel</span>
-          </button>
-        </div>
+        <button
+          onClick={() => {
+            setIsPlaying(false);
+            setShowExportModal(true);
+          }}
+          className="px-3.5 py-1.5 bg-[#F4CF5D] hover:bg-[#e8c24e] text-[#1C1B19] rounded-full text-xs font-extrabold flex items-center gap-1.5 transition-colors shadow-sm"
+        >
+          <FileDown className="w-3.5 h-3.5" />
+          <span>Export PDF</span>
+        </button>
       </header>
 
       {/* Main Content Area */}
@@ -1110,19 +1105,19 @@ export default function App() {
         )
       )}
 
-      {/* Footer navigation */}
-      <footer className="w-full bg-slate-900/60 backdrop-blur-md border-t border-slate-800/50 px-6 py-4 shrink-0 flex flex-col md:flex-row justify-between items-center z-30 space-y-3 md:space-y-0 text-xs">
+      {/* Floating Editorial Footer Navigation */}
+      <footer className="w-full bg-[#FAF8F4] border border-black/[0.06] rounded-[20px] px-5 py-3 shrink-0 flex flex-col md:flex-row justify-between items-center z-30 space-y-2.5 md:space-y-0 text-xs shadow-[0_4px_20px_rgba(28,27,25,0.05)]">
         
         {/* Slide picker dropdown */}
         <div className="flex items-center space-x-2.5 w-full md:w-auto">
-          <span className="text-slate-500 font-extrabold uppercase text-[10px] tracking-widest font-mono">Slide:</span>
+          <span className="text-[#6F6A61] font-extrabold uppercase text-[10px] tracking-widest">Slide:</span>
           <select
             value={currentSlideIndex}
             onChange={(e) => {
               setCurrentSlideIndex(parseInt(e.target.value));
               setIsPlaying(false);
             }}
-            className="bg-slate-800 border border-slate-700 text-xs font-bold rounded-xl px-3 py-1.5 text-slate-200 outline-none w-full md:w-72"
+            className="bg-[#F6F3EC] border border-black/[0.08] text-xs font-bold rounded-full px-3.5 py-1.5 text-[#1C1B19] outline-none w-full md:w-72 focus:border-[#2F6A57]"
           >
             {slideCatalog.map(slide => (
               <option key={slide.id} value={slide.id}>
@@ -1133,12 +1128,12 @@ export default function App() {
         </div>
 
         {/* Controls */}
-        <div className="flex items-center space-x-4">
-          <div className="flex bg-slate-800 rounded-xl p-1 border border-slate-700/50">
+        <div className="flex items-center space-x-3">
+          <div className="flex bg-[#1C1B19] rounded-full p-1 text-[#FAF8F4]">
             <button
               onClick={() => { prevSlide(totalSlides); setIsPlaying(false); }}
               title="Prev Slide (Left Arrow)"
-              className="p-1.5 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
+              className="p-1.5 hover:bg-white/15 rounded-full text-white transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -1146,8 +1141,8 @@ export default function App() {
             <button
               onClick={() => setIsPlaying(!isPlaying)}
               title={isPlaying ? "Pause Slideshow Auto-play" : "Play Autoplay Loop"}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
-                isPlaying ? "bg-amber-600 text-white" : "hover:bg-slate-700 text-slate-300"
+              className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                isPlaying ? "bg-[#F4CF5D] text-[#1C1B19]" : "hover:bg-white/15 text-white"
               }`}
             >
               {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -1157,52 +1152,49 @@ export default function App() {
             <button
               onClick={() => { nextSlide(totalSlides); setIsPlaying(false); }}
               title="Next Slide (Right Arrow / Space)"
-              className="p-1.5 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
+              className="p-1.5 hover:bg-white/15 rounded-full text-white transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
           <div className="flex items-center space-x-2">
-            {/* If mobile/tablet and NOT forced fullscreen, show button to re-enter mobile fullscreen */}
             {isMobileOrTablet && !mobileForceFullscreen && (
               <button
                 onClick={() => setMobileForceFullscreen(true)}
                 title="Masuk Mode Layar Penuh Mobile"
-                className="p-2 bg-amber-600 hover:bg-amber-700 border border-amber-500/30 rounded-xl text-white flex items-center space-x-1"
+                className="px-3 py-1.5 bg-[#1C1B19] hover:bg-[#32302C] rounded-full text-[#FAF8F4] flex items-center space-x-1 font-bold text-[11px]"
               >
-                <Maximize2 className="w-4 h-4" />
-                <span className="text-[10px] font-bold px-1">Layar Penuh Mobile</span>
+                <Maximize2 className="w-3.5 h-3.5 text-[#F4CF5D]" />
+                <span>Layar Penuh</span>
               </button>
             )}
 
-            {/* Open Presentation in New Tab */}
             <button
               onClick={openPresentationTab}
               title="Buka Tampilan Presentasi di Tab Baru (Untuk Proyektor)"
-              className="p-2 bg-slate-805 hover:bg-slate-800 border border-slate-750 rounded-xl text-slate-300 hover:text-white flex items-center space-x-1"
+              className="px-3 py-1.5 bg-[#F6F3EC] hover:bg-[#EFECE4] border border-black/[0.08] rounded-full text-[#1C1B19] flex items-center space-x-1.5 font-bold text-[11px] transition-colors"
             >
-              <Tv className="w-4 h-4 text-amber-500" />
-              <span className="text-[10px] font-bold px-1 text-slate-300">Present</span>
+              <Tv className="w-3.5 h-3.5 text-[#2F6A57]" />
+              <span>Present</span>
             </button>
 
-            {/* Local Fullscreen (like before) */}
             <button
               onClick={toggleFullscreen}
               title="Layar Penuh di Tab Ini (F)"
-              className="p-2 bg-slate-805 hover:bg-slate-800 border border-slate-750 rounded-xl text-slate-300 hover:text-white flex items-center space-x-1"
+              className="px-3 py-1.5 bg-[#F6F3EC] hover:bg-[#EFECE4] border border-black/[0.08] rounded-full text-[#1C1B19] flex items-center space-x-1.5 font-bold text-[11px] transition-colors"
             >
-              {isFullscreen ? <Minimize2 className="w-4 h-4 text-amber-500" /> : <Maximize2 className="w-4 h-4 text-amber-500" />}
-              <span className="text-[10px] font-bold px-1 text-slate-300">Layar Penuh</span>
+              {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 text-[#C4532E]" /> : <Maximize2 className="w-3.5 h-3.5 text-[#1C1B19]" />}
+              <span>Layar Penuh</span>
             </button>
           </div>
         </div>
 
         {/* Paging info */}
-        <div className="text-slate-500 font-mono font-bold text-[10px] tracking-wider">
-          SLIDES DECK PAGING: <span className="text-slate-300">{currentSlideIndex + 1}</span> / {totalSlides}
+        <div className="text-[#6F6A61] font-bold text-[11px] tracking-wider tabular-nums">
+          SLIDE: <span className="text-[#1C1B19] font-extrabold">{currentSlideIndex + 1}</span> / {totalSlides}
           {activeSlides.length < expandedSlideConfig.length && (
-            <span className="ml-2 text-amber-500">
+            <span className="ml-2 text-[#C4532E]">
               ({expandedSlideConfig.length - activeSlides.length} disembunyikan)
             </span>
           )}
@@ -1229,6 +1221,21 @@ export default function App() {
           onClose={() => setShowAdmin(false)}
         />
       )}
+
+      {/* Password-Protected Export PDF Modal */}
+      <ExportPdfModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        activeSlides={activeSlides}
+        renderSlide={(slideId, pageNumber) =>
+          renderSlideById(slideId, {
+            dynamicDoctorSlides,
+            dbState,
+            totalPages: totalSlides,
+            pageNumber,
+          })
+        }
+      />
     </div>
   );
 }
